@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+python-dotenv
+google-generativeai
+faster-whisper
+edge-tts
+python-multipart
+pydantic
+aiofiles
+sounddevice
+soundfile
+numpy
