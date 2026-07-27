@@ -1,0 +1,14 @@
+{
+  "sample_user": [
+    {
+      "timestamp": "2024-01-01T10:00:00",
+      "role": "user",
+      "content": "Hello, what's your name?"
+    },
+    {
+      "timestamp": "2024-01-01T10:00:05",
+      "role": "assistant",
+      "content": "I'm a voice-based AI assistant. How can I help you today?"
+    }
+  ]
+}
