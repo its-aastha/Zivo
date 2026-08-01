@@ -1,7 +1,7 @@
 from agent.brain import understand
 
-from backend.tools.app_tools import open_application
-from backend.tools.file_tools import create_file, create_folder
+from tools.app_tools import open_application
+from tools.file_tools import create_file, create_folder
 
 
 def handle_command(command):

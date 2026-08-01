@@ -1,4 +1,4 @@
-from backend.agent.command_handler import handle_command
+from agent.command_handler import handle_command
 
 
 print("=" * 40)
