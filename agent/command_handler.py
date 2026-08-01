@@ -1,40 +1,29 @@
+from agent.brain import understand
+
 from tools.app_tools import open_application
-from tools.files_tools import create_file, create_folder
+from tools.file_tools import create_file
+from tools.file_tools import create_folder
 
 
 def handle_command(command):
-    command = command.strip()
-    lower_command = command.lower()
 
-    # Open application
-    if lower_command.startswith("open "):
-        app_name = command[5:].strip()
+    task = understand(command)
 
-        if not app_name:
-            return "Please tell me which application to open."
+    action = task["action"]
 
-        return open_application(app_name)
+    if action == "open_application":
+        return open_application(task["application"])
 
-    # Create file
-    elif lower_command.startswith("create file "):
-        filename = command[len("create file "):].strip()
+    elif action == "create_file":
+        return create_file(
+            task["filename"],
+            task["location"]
+        )
 
-        if not filename:
-            return "Please provide a file name."
+    elif action == "create_folder":
+        return create_folder(
+            task["folder_name"],
+            task["location"]
+        )
 
-        return create_file(filename)
-
-    # Create folder
-    elif lower_command.startswith("create folder "):
-        folder_name = command[len("create folder "):].strip()
-
-        if not folder_name:
-            return "Please provide a folder name."
-
-        return create_folder(folder_name)
-
-    # Exit
-    elif lower_command in ["exit", "quit", "bye"]:
-        return "EXIT"
-
-    return "Sorry, I don't understand that command yet."
+    return "Unsupported command."
