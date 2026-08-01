@@ -1,70 +1,79 @@
 from pathlib import Path
+import os
 
 
-def resolve_location(location):
-    """Convert a location name into an actual Windows path."""
+def resolve_location(location: str):
+    """
+    Convert a location name into an actual Windows folder.
+    Supports Desktop, Documents and Downloads.
+    """
 
     location = location.lower().strip()
-    home = Path.home()
+
+    user = Path(os.environ["USERPROFILE"])
 
     locations = {
-        "desktop": home / "Desktop",
-        "documents": home / "Documents",
-        "downloads": home / "Downloads",
+        "desktop": [
+            user / "Desktop",
+            user / "OneDrive" / "Desktop",
+        ],
+        "documents": [
+            user / "Documents",
+            user / "OneDrive" / "Documents",
+        ],
+        "downloads": [
+            user / "Downloads",
+            user / "OneDrive" / "Downloads",
+        ],
     }
 
-    # Desktop / Documents / Downloads
     if location in locations:
-        return locations[location]
 
-    # Custom path such as C:\Users\Aastha\Test
-    custom_path = Path(location)
+        for folder in locations[location]:
 
-    if custom_path.exists() and custom_path.is_dir():
-        return custom_path
+            if folder.exists():
+                return folder
 
     return None
 
 
-def create_file(filename, location="desktop"):
-    """Create a file at the given location."""
+def create_file(filename: str, location: str = "desktop"):
 
     folder = resolve_location(location)
 
     if folder is None:
-        return f"Location '{location}' was not found."
+        return f"Location '{location}' not found."
 
     file_path = folder / filename
 
     try:
-        if file_path.exists():
-            return f"File '{filename}' already exists at {folder}"
 
-        file_path.touch()
+        # Create parent folders if needed
+        file_path.parent.mkdir(parents=True, exist_ok=True)
 
-        return f"File '{filename}' created successfully at {file_path}"
+        # Create file if it doesn't exist
+        file_path.touch(exist_ok=True)
 
-    except Exception as error:
-        return f"Error creating file: {error}"
+        return f"File created successfully.\n\nLocation:\n{file_path}"
+
+    except Exception as e:
+        return f"Error creating file:\n{e}"
 
 
-def create_folder(folder_name, location="desktop"):
-    """Create a folder at the given location."""
+def create_folder(folder_name: str, location: str = "desktop"):
 
     folder = resolve_location(location)
 
     if folder is None:
-        return f"Location '{location}' was not found."
+        return f"Location '{location}' not found."
 
     folder_path = folder / folder_name
 
     try:
-        if folder_path.exists():
-            return f"Folder '{folder_name}' already exists at {folder}"
 
-        folder_path.mkdir(parents=True)
+        folder_path.mkdir(parents=True, exist_ok=True)
 
-        return f"Folder '{folder_name}' created successfully at {folder_path}"
+        return f"Folder created successfully.\n\nLocation:\n{folder_path}"
 
-    except Exception as error:
-        return f"Error creating folder: {error}"
+    except Exception as e:
+        return f"Error creating folder:\n{e}"
