@@ -1,44 +1,32 @@
 import os
 import subprocess
-import shutil
 
+from tools.app_finder import find_application
+
+SYSTEM_COMMANDS = {
+    "paint": "mspaint",
+    "calculator": "calc",
+    "notepad": "notepad",
+    "cmd": "cmd",
+    "explorer": "explorer",
+}
 
 def open_application(app_name):
+
     app_name = app_name.lower().strip()
 
+    if app_name in SYSTEM_COMMANDS:
+        subprocess.Popen(SYSTEM_COMMANDS[app_name])
+        return f"Opening {app_name}..."
+
+    shortcut = find_application(app_name)
+
+    if shortcut:
+        os.startfile(shortcut)
+        return f"Opening {app_name}..."
+
     try:
-        if app_name in ["chrome", "google chrome"]:
-            possible_paths = [
-                r"C:\Program Files\Google\Chrome\Application\chrome.exe",
-                r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
-            ]
-
-            for path in possible_paths:
-                if os.path.exists(path):
-                    subprocess.Popen([path])
-                    return "Chrome opened successfully."
-
-            return "Chrome was not found on this computer."
-
-        elif app_name == "notepad":
-            subprocess.Popen(["notepad.exe"])
-            return "Notepad opened successfully."
-
-        elif app_name in ["calculator", "calc"]:
-            subprocess.Popen(["calc.exe"])
-            return "Calculator opened successfully."
-
-        elif app_name in ["vs code", "vscode", "visual studio code"]:
-            code_path = shutil.which("code")
-
-            if code_path:
-                subprocess.Popen([code_path])
-                return "VS Code opened successfully."
-
-            return "VS Code command was not found."
-
-        else:
-            return f"I don't know how to open '{app_name}' yet."
-
-    except Exception as error:
-        return f"Failed to open {app_name}: {error}"
+        subprocess.Popen(["cmd", "/c", "start", "", app_name], shell=True)
+        return f"Trying to open {app_name}..."
+    except Exception:
+        return f"I couldn't find '{app_name}'."
