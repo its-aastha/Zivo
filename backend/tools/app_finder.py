@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+#app finder llm 
 
 SEARCH_LOCATIONS = [
     Path(r"C:\ProgramData\Microsoft\Windows\Start Menu\Programs"),
