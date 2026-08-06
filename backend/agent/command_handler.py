@@ -6,6 +6,20 @@ from tools.file_tools import create_file, create_folder
 
 def handle_command(command):
 
+    command = command.strip().lower()
+
+    # -------------------------------
+    # LOCAL COMMANDS (No Gemini)
+    # -------------------------------
+
+    if command.startswith("open "):
+        app = command.replace("open ", "", 1).strip()
+        return open_application(app)
+
+    # -------------------------------
+    # AI COMMANDS (Gemini)
+    # -------------------------------
+
     task = understand(command)
 
     print("\n========== Gemini Output ==========")

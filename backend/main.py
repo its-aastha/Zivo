@@ -1,17 +1,17 @@
 from agent.command_handler import handle_command
 
 
-print("=" * 40)
-print("        ZIVO AI")
-print("=" * 40)
+print("=" * 50)
+print("                      ZIVO AI")
+print("=" * 50)
 
 while True:
 
-    command = input("\nYou : ")
+    command = input("\nYou: ")
 
     if command.lower() == "exit":
         break
 
     response = handle_command(command)
 
-    print("\nZivo:", response)
+    print("\nZivo 👻:", response)

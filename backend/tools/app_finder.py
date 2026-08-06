@@ -1,25 +1,55 @@
 import os
-from pathlib import Path
-#app finder llm 
 
-SEARCH_LOCATIONS = [
-    Path(r"C:\ProgramData\Microsoft\Windows\Start Menu\Programs"),
-    Path(os.path.expandvars(r"%APPDATA%\Microsoft\Windows\Start Menu\Programs")),
-]
+APP_PATHS = {
+    "chrome": [
+        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+        os.path.join(os.getenv("LOCALAPPDATA", ""), "Google", "Chrome", "Application", "chrome.exe"),
+    ],
+
+    "edge": [
+        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+        r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+    ],
+
+    "firefox": [
+        r"C:\Program Files\Mozilla Firefox\firefox.exe",
+        r"C:\Program Files (x86)\Mozilla Firefox\firefox.exe",
+    ],
+
+    "excel": [
+        r"C:\Program Files\Microsoft Office\root\Office16\EXCEL.EXE",
+        r"C:\Program Files (x86)\Microsoft Office\root\Office16\EXCEL.EXE",
+    ],
+
+    "word": [
+        r"C:\Program Files\Microsoft Office\root\Office16\WINWORD.EXE",
+        r"C:\Program Files (x86)\Microsoft Office\root\Office16\WINWORD.EXE",
+    ],
+
+    "powerpoint": [
+        r"C:\Program Files\Microsoft Office\root\Office16\POWERPNT.EXE",
+        r"C:\Program Files (x86)\Microsoft Office\root\Office16\POWERPNT.EXE",
+    ],
+
+    "vscode": [
+        os.path.join(os.getenv("LOCALAPPDATA", ""), "Programs", "Microsoft VS Code", "Code.exe"),
+    ],
+
+    "cursor": [
+        os.path.join(os.getenv("LOCALAPPDATA", ""), "Programs", "Cursor", "Cursor.exe"),
+    ],
+}
+
 
 def find_application(app_name):
     app_name = app_name.lower()
 
-    for location in SEARCH_LOCATIONS:
-        if not location.exists():
-            continue
+    if app_name not in APP_PATHS:
+        return None
 
-        for root, _, files in os.walk(location):
-            for file in files:
-                if file.lower().endswith(".lnk"):
-                    name = file.lower().replace(".lnk", "")
-
-                    if app_name in name:
-                        return os.path.join(root, file)
+    for path in APP_PATHS[app_name]:
+        if os.path.exists(path):
+            return path
 
     return None
