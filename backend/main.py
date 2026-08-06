@@ -1,17 +1,29 @@
 from agent.command_handler import handle_command
 
 
-print("=" * 50)
-print("                      ZIVO AI")
-print("=" * 50)
+def main():
+    print("=" * 50)
+    print("        🤖 Welcome to Zivo 👻")
+    print(" Type 'exit' to quit the assistant.")
+    print("=" * 50)
 
-while True:
+    while True:
+        command = input("\nYou: ").strip()
 
-    command = input("\nYou: ")
+        if not command:
+            continue
 
-    if command.lower() == "exit":
-        break
+        if command.lower() in ["exit", "quit", "bye"]:
+            print("\nZivo 👻: Goodbye! Have a great day.")
+            break
 
-    response = handle_command(command)
+        try:
+            response = handle_command(command)
+            print(f"\nZivo 👻: {response}")
 
-    print("\nZivo 👻:", response)
+        except Exception as e:
+            print(f"\nZivo 👻: Error - {e}")
+
+
+if __name__ == "__main__":
+    main()
