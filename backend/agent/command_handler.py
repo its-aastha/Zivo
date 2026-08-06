@@ -1,3 +1,4 @@
+from agent.local_parser import parse
 from agent.brain import understand
 
 from tools.app_tools import open_application
@@ -6,25 +7,22 @@ from tools.file_tools import create_file, create_folder
 
 def handle_command(command):
 
-    command = command.strip().lower()
-
     # -------------------------------
-    # LOCAL COMMANDS (No Gemini)
+    # Try Local Parser First
     # -------------------------------
 
-    if command.startswith("open "):
-        app = command.replace("open ", "", 1).strip()
-        return open_application(app)
+    task = parse(command)
 
     # -------------------------------
-    # AI COMMANDS (Gemini)
+    # If Local Parser Fails -> Gemini
     # -------------------------------
 
-    task = understand(command)
+    if task is None:
+        task = understand(command)
 
-    print("\n========== Gemini Output ==========")
-    print(task)
-    print("===================================\n")
+        print("\n========== Gemini Output ==========")
+        print(task)
+        print("===================================\n")
 
     action = task["action"]
 
@@ -32,20 +30,12 @@ def handle_command(command):
         return open_application(task["application"])
 
     elif action == "create_file":
-
-        print("Filename :", task["filename"])
-        print("Location :", task["location"])
-
         return create_file(
             task["filename"],
             task["location"]
         )
 
     elif action == "create_folder":
-
-        print("Folder :", task["folder_name"])
-        print("Location :", task["location"])
-
         return create_folder(
             task["folder_name"],
             task["location"]
