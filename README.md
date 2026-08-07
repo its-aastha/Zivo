@@ -32,13 +32,13 @@ GEMINI_API_KEY=your_api_key_here
 
 ## Run
 
-Start the CLI from the `backend` folder:
+Start the CLI from the `Backend` folder:
 
 ```bash
 cd backend
 python -m uvicorn main:app --host 127.0.0.1 --port 8000
 ```
-Start the CLI from the `backend` folder:
+Start the CLI from the `Frontend` folder:
 
 ```bash
 cd frontend

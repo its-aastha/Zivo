@@ -21,3 +21,28 @@ def _is_task_complete(task):
         return bool(task.get("folder_name")) and bool(task.get("location"))
 
     return False
+
+
+def handle_command(command: str):
+    # Try local parser first
+    task = parse(command)
+
+    # If local parser couldn't fully understand, use AI
+    if not _is_task_complete(task):
+        task = understand(command)
+
+    if not task:
+        return "Sorry, I couldn't understand that command."
+
+    action = task.get("action")
+
+    if action == "open_application":
+        return open_application(task["application"])
+
+    elif action == "create_file":
+        return create_file(task["filename"], task["location"])
+
+    elif action == "create_folder":
+        return create_folder(task["folder_name"], task["location"])
+
+    return "Unsupported command."
