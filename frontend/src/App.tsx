@@ -1,9 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { 
   Bot, 
   User, 
-  Plus, 
-  MessageSquare, 
   Bell, 
   Mic, 
   Send, 
@@ -11,13 +9,6 @@ import {
   CheckCircle2 
 } from 'lucide-react';
 import './App.css';
-
-// Types & Interfaces
-interface ChatHistoryItem {
-  id: string;
-  title: string;
-  active?: boolean;
-}
 
 interface Message {
   id: string;
@@ -33,26 +24,10 @@ interface Message {
 
 export const App: React.FC = () => {
   const [inputValue, setInputValue] = useState<string>('');
+  const [isSending, setIsSending] = useState<boolean>(false);
+  const bottomAnchorRef = useRef<HTMLDivElement | null>(null);
 
-  // Sample Sidebar Data
-  const recentChats: ChatHistoryItem[] = [
-    { id: '1', title: 'Open Chrome', active: true },
-    { id: '2', title: 'Create Folder' },
-    { id: '3', title: 'Open VS Code' },
-    { id: '4', title: 'Play Music' },
-    { id: '5', title: 'Shutdown PC' },
-    { id: '6', title: 'Tell me a joke' },
-    { id: '7', title: 'Weather today' },
-  ];
-
-  const yesterdayChats: ChatHistoryItem[] = [
-    { id: '8', title: 'Search File' },
-    { id: '9', title: 'Calculator' },
-    { id: '10', title: 'Latest News' },
-  ];
-
-  // Sample Chat Messages Data
-  const [messages] = useState<Message[]>([
+  const [messages, setMessages] = useState<Message[]>([
     {
       id: 'm1',
       sender: 'bot',
@@ -60,40 +35,71 @@ export const App: React.FC = () => {
       time: '10:30 AM',
       type: 'text',
     },
-    {
-      id: 'm2',
-      sender: 'user',
-      text: 'Open Chrome',
-      time: '10:30 AM',
-      type: 'text',
-    },
-    {
-      id: 'm3',
-      sender: 'bot',
-      text: 'Sure! I will open Chrome for you.',
-      time: '10:30 AM',
-      type: 'text',
-    },
-    {
-      id: 'm4',
-      sender: 'bot',
-      type: 'status',
-      statusDetails: {
-        title: 'Executing Command...',
-        description: 'Opening Google Chrome',
-      },
-    },
-    {
-      id: 'm5',
-      sender: 'bot',
-      type: 'typing',
-    },
   ]);
 
-  const handleSend = (): void => {
-    if (!inputValue.trim()) return;
-    // Handle message sending logic here
+  const nowTime = (): string =>
+    new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  useEffect(() => {
+    bottomAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, [messages, isSending]);
+
+  const handleSend = async (): Promise<void> => {
+    const text = inputValue.trim();
+    if (!text || isSending) return;
+
+    const userMessage: Message = {
+      id: `${Date.now()}-user`,
+      sender: 'user',
+      text,
+      time: nowTime(),
+      type: 'text',
+    };
+
+    setMessages((prev) => [...prev, userMessage]);
     setInputValue('');
+    setIsSending(true);
+
+    try {
+      const apiBase = import.meta.env.VITE_API_BASE_URL ?? '';
+      const response = await fetch(`${apiBase}/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: text }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+
+      const data: { response?: string } = await response.json();
+      const botMessage: Message = {
+        id: `${Date.now()}-bot`,
+        sender: 'bot',
+        text: data.response ?? 'No response from server.',
+        time: nowTime(),
+        type: 'text',
+      };
+
+      setMessages((prev) => [...prev, botMessage]);
+    } catch (error) {
+      const errorMessage: Message = {
+        id: `${Date.now()}-error`,
+        sender: 'bot',
+        text:
+          error instanceof Error
+            ? `Unable to reach backend: ${error.message}`
+            : 'Unable to reach backend.',
+        time: nowTime(),
+        type: 'text',
+      };
+
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
@@ -124,51 +130,6 @@ export const App: React.FC = () => {
 
       {/* Main Container */}
       <div className="app-body">
-        {/* Left Sidebar */}
-        <aside className="sidebar">
-          <button className="btn-new-chat">
-            <Plus size={16} />
-            <span>New Chat</span>
-          </button>
-
-          <div className="chat-section-title">RECENT CHATS</div>
-          <div className="chat-list">
-            {recentChats.map((chat) => (
-              <div
-                key={chat.id}
-                className={`chat-item ${chat.active ? 'active' : ''}`}
-              >
-                <MessageSquare size={16} />
-                <span>{chat.title}</span>
-                {chat.active && <div className="chat-item-indicator" />}
-              </div>
-            ))}
-          </div>
-
-          <div className="chat-section-title" style={{ marginTop: '10px' }}>
-            YESTERDAY
-          </div>
-          <div className="chat-list">
-            {yesterdayChats.map((chat) => (
-              <div key={chat.id} className="chat-item">
-                <MessageSquare size={16} />
-                <span>{chat.title}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="profile-card">
-            <div className="profile-avatar">
-              <Bot size={20} />
-            </div>
-            <div className="profile-info">
-              <span className="profile-name">ZIVO AI</span>
-              <span className="profile-version">v1.0.0</span>
-            </div>
-          </div>
-        </aside>
-
-        {/* Chat Main Window */}
         <main className="chat-area">
           <div className="messages-container">
             {messages.map((msg) => {
@@ -224,6 +185,26 @@ export const App: React.FC = () => {
                 </div>
               );
             })}
+
+            {isSending && (
+              <div className="message-row msg-row bot">
+                <div className="msg-avatar bot">
+                  <Bot size={20} />
+                </div>
+                <div className="msg-content">
+                  <div className="bubble typing-bubble">
+                    <span>ZIVO is typing</span>
+                    <div className="typing-dots">
+                      <span />
+                      <span />
+                      <span />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div ref={bottomAnchorRef} />
           </div>
 
           {/* Input Panel */}

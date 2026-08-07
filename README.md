@@ -36,7 +36,13 @@ Start the CLI from the `backend` folder:
 
 ```bash
 cd backend
-python main.py
+python -m uvicorn main:app --host 127.0.0.1 --port 8000
+```
+Start the CLI from the `backend` folder:
+
+```bash
+cd frontend
+npm run dev
 ```
 
 The app will prompt for a command and print the parsed Gemini output before executing the requested action.
@@ -59,23 +65,31 @@ The CLI sends each user command to Gemini with a fixed system prompt. Gemini mus
 
 The command handler then routes that JSON to the matching tool in `backend/tools/`.
 
-## Project Structure
+## 📁 Project Structure
 
 ```text
-backend/
-  main.py
-  requirements.txt
-  agent/
-    brain.py
-    command_handler.py
-    prompt.py
-  tools/
-    app_finder.py
-    app_tools.py
-    file_tools.py
-  utils/
-    gemini_client.py
-    fuzzy_match.py
+zivo/
+├── backend/
+│   ├── main.py                 # Backend server / entry point
+│   ├── requirements.txt        # Python dependencies
+│   ├── .env                    # Environment variables (Gemini API Key)
+│   ├── agent/
+│   │   ├── brain.py            # AI reasoning & decision engine
+│   │   ├── command_handler.py  # Routes parsed JSON to tools
+│   │   ├── local_parser.py     # Fallback/local string parser
+│   │   └── prompt.py           # System prompts for Gemini
+│   ├── tools/                  # App launcher & file creation utilities
+│   └── utils/                  # Gemini client & fuzzy matching helpers
+│
+└── frontend/
+    ├── src/
+    │   ├── App.tsx             # Main React UI component
+    │   ├── App.css             # Neon glassmorphism styling
+    │   └── main.tsx            # Vite React entry
+    ├── index.html              # HTML entry template
+    ├── package.json            # Node dependencies & scripts
+    ├── tsconfig.json           # TypeScript configuration
+    └── vite.config.ts          # Vite build configuration
 ```
 
 ## Notes

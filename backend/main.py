@@ -1,29 +1,42 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+
 from agent.command_handler import handle_command
 
 
-def main():
-    print("=" * 50)
-    print("        🤖 Welcome to Zivo 👻")
-    print(" Type 'exit' to quit the assistant.")
-    print("=" * 50)
-
-    while True:
-        command = input("\nYou: ").strip()
-
-        if not command:
-            continue
-
-        if command.lower() in ["exit", "quit", "bye"]:
-            print("\nZivo 👻: Goodbye! Have a great day.")
-            break
-
-        try:
-            response = handle_command(command)
-            print(f"\nZivo 👻: {response}")
-
-        except Exception as e:
-            print(f"\nZivo 👻: Error - {e}")
+class ChatRequest(BaseModel):
+    message: str
 
 
-if __name__ == "__main__":
-    main()
+class ChatResponse(BaseModel):
+    response: str
+
+
+app = FastAPI(title="Zivo Backend", version="1.0.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.get("/health")
+def health_check() -> dict[str, str]:
+    return {"status": "ok"}
+
+
+@app.post("/chat", response_model=ChatResponse)
+def chat(payload: ChatRequest) -> ChatResponse:
+    text = payload.message.strip()
+    if not text:
+        return ChatResponse(response="Please enter a valid command.")
+
+    try:
+        result = handle_command(text)
+        return ChatResponse(response=result)
+    except Exception as exc:
+        return ChatResponse(response=f"Error: {exc}")

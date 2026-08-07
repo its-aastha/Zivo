@@ -5,40 +5,19 @@ from tools.app_tools import open_application
 from tools.file_tools import create_file, create_folder
 
 
-def handle_command(command):
-
-    # -------------------------------
-    # Try Local Parser First
-    # -------------------------------
-
-    task = parse(command)
-
-    # -------------------------------
-    # If Local Parser Fails -> Gemini
-    # -------------------------------
-
+def _is_task_complete(task):
     if task is None:
-        task = understand(command)
+        return False
 
-        print("\n========== Gemini Output ==========")
-        print(task)
-        print("===================================\n")
-
-    action = task["action"]
+    action = task.get("action")
 
     if action == "open_application":
-        return open_application(task["application"])
+        return bool(task.get("application"))
 
-    elif action == "create_file":
-        return create_file(
-            task["filename"],
-            task["location"]
-        )
+    if action == "create_file":
+        return bool(task.get("filename")) and bool(task.get("location"))
 
-    elif action == "create_folder":
-        return create_folder(
-            task["folder_name"],
-            task["location"]
-        )
+    if action == "create_folder":
+        return bool(task.get("folder_name")) and bool(task.get("location"))
 
-    return "Unsupported command."
+    return False
