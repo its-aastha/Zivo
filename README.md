@@ -91,6 +91,11 @@ zivo/
     ├── tsconfig.json           # TypeScript configuration
     └── vite.config.ts          # Vite build configuration
 ```
+## 📸 Dashboard
+
+<p align="center">
+  <img src="assets/UI.png" alt="ZIVO Dashboard" width="900">
+</p>
 
 ## Notes
 
