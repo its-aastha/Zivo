@@ -6,8 +6,6 @@ from agent.command_handler import handle_command
 
 app = FastAPI()
 
-
-# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -23,9 +21,7 @@ class CommandRequest(BaseModel):
 
 @app.get("/")
 def home():
-    return {
-        "message": "ZIVO backend is running"
-    }
+    return {"message": "ZIVO backend is running"}
 
 
 @app.post("/command")
