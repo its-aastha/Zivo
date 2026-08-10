@@ -325,3 +325,20 @@ body {
   cursor: pointer;
   box-shadow: 0 0 10px rgba(255, 59, 59, 0.4);
 }
+.mic-btn.listening {
+  animation: zivoListening 1s infinite;
+}
+
+@keyframes zivoListening {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.15);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}

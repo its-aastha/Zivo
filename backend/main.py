@@ -4,17 +4,10 @@ from pydantic import BaseModel
 
 from agent.command_handler import handle_command
 
-
-class ChatRequest(BaseModel):
-    message: str
+app = FastAPI()
 
 
-class ChatResponse(BaseModel):
-    response: str
-
-
-app = FastAPI(title="Zivo Backend", version="1.0.0")
-
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -24,19 +17,26 @@ app.add_middleware(
 )
 
 
-@app.get("/health")
-def health_check() -> dict[str, str]:
-    return {"status": "ok"}
+class CommandRequest(BaseModel):
+    command: str
 
 
-@app.post("/chat", response_model=ChatResponse)
-def chat(payload: ChatRequest) -> ChatResponse:
-    text = payload.message.strip()
-    if not text:
-        return ChatResponse(response="Please enter a valid command.")
+@app.get("/")
+def home():
+    return {
+        "message": "ZIVO backend is running"
+    }
 
-    try:
-        result = handle_command(text)
-        return ChatResponse(response=result)
-    except Exception as exc:
-        return ChatResponse(response=f"Error: {exc}")
+
+@app.post("/command")
+def execute_command(request: CommandRequest):
+
+    print("USER COMMAND:", request.command)
+
+    result = handle_command(request.command)
+
+    print("ZIVO RESULT:", result)
+
+    return {
+        "response": result
+    }

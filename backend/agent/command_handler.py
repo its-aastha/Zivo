@@ -1,48 +1,97 @@
-from agent.local_parser import parse
-from agent.brain import understand
-
 from tools.app_tools import open_application
 from tools.file_tools import create_file, create_folder
 
-
-def _is_task_complete(task):
-    if task is None:
-        return False
-
-    action = task.get("action")
-
-    if action == "open_application":
-        return bool(task.get("application"))
-
-    if action == "create_file":
-        return bool(task.get("filename")) and bool(task.get("location"))
-
-    if action == "create_folder":
-        return bool(task.get("folder_name")) and bool(task.get("location"))
-
-    return False
+from agent.brain import understand
 
 
-def handle_command(command: str):
-    # Try local parser first
-    task = parse(command)
+def handle_command(command):
 
-    # If local parser couldn't fully understand, use AI
-    if not _is_task_complete(task):
-        task = understand(command)
+    command = command.strip().lower()
 
-    if not task:
-        return "Sorry, I couldn't understand that command."
+    # =========================
+    # OPEN APPLICATION
+    # =========================
 
-    action = task.get("action")
+    if command.startswith("open "):
 
-    if action == "open_application":
-        return open_application(task["application"])
+        app = command.replace("open ", "", 1).strip()
 
-    elif action == "create_file":
-        return create_file(task["filename"], task["location"])
+        try:
+            open_application(app)
 
-    elif action == "create_folder":
-        return create_folder(task["folder_name"], task["location"])
+            return f"{app} opened successfully."
 
-    return "Unsupported command."
+        except Exception as e:
+
+            return f"I could not open {app}: {str(e)}"
+
+    # =========================
+    # CREATE FOLDER
+    # =========================
+
+    if command.startswith("create folder "):
+
+        folder_name = command.replace(
+            "create folder ",
+            "",
+            1
+        ).strip()
+
+        try:
+            create_folder(folder_name)
+
+            return (
+                f"Folder {folder_name} "
+                f"created successfully."
+            )
+
+        except Exception as e:
+
+            return (
+                f"I could not create the folder. "
+                f"{str(e)}"
+            )
+
+    # =========================
+    # CREATE FILE
+    # =========================
+
+    if command.startswith("create file "):
+
+        file_name = command.replace(
+            "create file ",
+            "",
+            1
+        ).strip()
+
+        try:
+            create_file(file_name)
+
+            return (
+                f"File {file_name} "
+                f"created successfully."
+            )
+
+        except Exception as e:
+
+            return (
+                f"I could not create the file. "
+                f"{str(e)}"
+            )
+
+    # =========================
+    # AI BRAIN
+    # =========================
+
+    try:
+
+        result = understand(command)
+
+        return str(result)
+
+    except Exception:
+
+        return (
+            "Sorry, I don't understand "
+            "that command yet."
+        )
