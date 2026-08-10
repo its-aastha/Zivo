@@ -57,7 +57,12 @@ Type `exit` to quit.
 
 ## How it works
 
-The CLI sends each user command to Gemini with a fixed system prompt. Gemini must return JSON describing one of three actions:
+User can enter the query using two way :
+  - Text 
+  - voice command 
+
+it convert the speech-to-text and then perform the speccific task
+it store the data in the Drive not on cloud
 
 1. `open_application`
 2. `create_file`
@@ -70,26 +75,35 @@ The command handler then routes that JSON to the matching tool in `backend/tools
 ```text
 zivo/
 ├── backend/
-│   ├── main.py                 # Backend server / entry point
-│   ├── requirements.txt        # Python dependencies
-│   ├── .env                    # Environment variables (Gemini API Key)
 │   ├── agent/
 │   │   ├── brain.py            # AI reasoning & decision engine
-│   │   ├── command_handler.py  # Routes parsed JSON to tools
-│   │   ├── local_parser.py     # Fallback/local string parser
+│   │   ├── command_handler.py  # Routes parsed commands to execution tools
+│   │   ├── local_parser.py     # Fallback local string parser
 │   │   └── prompt.py           # System prompts for Gemini
-│   ├── tools/                  # App launcher & file creation utilities
-│   └── utils/                  # Gemini client & fuzzy matching helpers
+│   ├── tools/
+│   │   ├── app_finder.py       # Scans system for installed applications
+│   │   ├── app_tools.py        # Logic to launch apps
+│   │   └── file_tools.py       # Logic to create files/folders (Desktop, C:\\, etc.)
+│   ├── utils/
+│   │   ├── fuzzy_match.py      # Matching helper for app names
+│   │   └── gemini_client.py   # Gemini API integration wrapper
+│   ├── .env                    # Environment variables
+│   ├── main.py                 # FastAPI server entry point
+│   └── requirements.txt        # Python backend dependencies
 │
 └── frontend/
     ├── src/
-    │   ├── App.tsx             # Main React UI component
-    │   ├── App.css             # Neon glassmorphism styling
-    │   └── main.tsx            # Vite React entry
-    ├── index.html              # HTML entry template
-    ├── package.json            # Node dependencies & scripts
+    │   ├── assets/             # Images and design assets
+    │   ├── components/
+    │   │   └── VoiceButton.jsx # Voice capture component
+    │   ├── App.css             # Glassmorphism styling
+    │   ├── App.tsx             # Main React application shell
+    │   ├── index.css           # Global CSS styles
+    │   └── main.tsx            # React DOM rendering entry
+    ├── index.html              # Main HTML template
+    ├── package.json            # Node dependencies and scripts
     ├── tsconfig.json           # TypeScript configuration
-    └── vite.config.ts          # Vite build configuration
+    └── vite.config.ts          # Vite build options
 ```
 ## 📸 Dashboard
 
