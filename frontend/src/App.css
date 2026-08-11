@@ -8,172 +8,139 @@ body {
   font-family: Inter, Arial, sans-serif;
   background: #02050d;
   color: white;
+  overflow: hidden;
 }
 
 button {
   font-family: inherit;
 }
 
+/* =====================================
+   MAIN APP
+===================================== */
+
 .zivo-app {
   min-height: 100vh;
+  width: 100%;
+
+  position: relative;
   overflow: hidden;
-  position: relative;
-
-  background:
-    radial-gradient(
-      circle at 50% 45%,
-      rgba(0, 180, 255, 0.08),
-      transparent 30%
-    ),
-    radial-gradient(
-      circle at 80% 80%,
-      rgba(255, 0, 170, 0.06),
-      transparent 30%
-    ),
-    linear-gradient(
-      135deg,
-      #020a12,
-      #030711 45%,
-      #080312
-    );
-}
-
-/* ================================= */
-/* HEADER */
-/* ================================= */
-
-.zivo-header {
-  height: 100px;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  padding: 0 55px;
-}
-
-.header-button {
-  width: 48px;
-  height: 48px;
-
-  border-radius: 50%;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  color: #aeb8cc;
-  font-size: 20px;
-
-  border: 1px solid rgba(100, 180, 255, 0.15);
-
-  background: rgba(255, 255, 255, 0.015);
-
-  transition: 0.3s;
-}
-
-.header-button:hover {
-  color: #00eaff;
-
-  border-color: rgba(0, 234, 255, 0.5);
-
-  box-shadow:
-    0 0 20px rgba(0, 234, 255, 0.15);
-}
-
-.zivo-logo {
-  position: relative;
-
-  font-size: 27px;
-  font-weight: 400;
-  letter-spacing: 4px;
-}
-
-.zivo-logo span {
-  position: absolute;
-
-  width: 7px;
-  height: 7px;
-
-  background: #00eaff;
-
-  border-radius: 50%;
-
-  left: 50%;
-  bottom: -14px;
-
-  transform: translateX(-50%);
-
-  box-shadow:
-    0 0 8px #00eaff,
-    0 0 18px #00eaff;
-}
-
-/* ================================= */
-/* MAIN */
-/* ================================= */
-
-.zivo-main {
-  min-height: calc(100vh - 160px);
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 20px;
-}
-
-.zivo-card {
-  width: min(1350px, 92vw);
-  height: min(750px, 72vh);
-
-  border-radius: 25px;
-
-  border: 1px solid rgba(0, 180, 255, 0.22);
 
   background:
     radial-gradient(
       circle at 50% 50%,
-      rgba(0, 150, 255, 0.035),
-      transparent 45%
+      rgba(0, 150, 255, 0.06),
+      transparent 30%
     ),
-    rgba(3, 8, 18, 0.55);
+    radial-gradient(
+      circle at 80% 70%,
+      rgba(220, 0, 180, 0.05),
+      transparent 30%
+    ),
+    linear-gradient(
+      135deg,
+      #020812 0%,
+      #030714 50%,
+      #08020f 100%
+    );
+}
 
-  position: relative;
+/* =====================================
+   ZIVO LOGO
+===================================== */
+
+.zivo-logo {
+  position: absolute;
+
+  top: 48px;
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  font-family:
+    "Courier New",
+    Courier,
+    monospace;
+
+  font-size: 48px;
+  font-weight: 700;
+
+  letter-spacing: 7px;
+
+  color: #f4f4f4;
+
+  text-transform: lowercase;
+
+  text-shadow:
+    0 0 8px rgba(255, 255, 255, 0.2);
+
+  z-index: 20;
+}
+
+/* Typewriter cursor */
+
+.cursor {
+  margin-left: 4px;
+
+  color: #ffffff;
+
+  animation: cursorBlink 0.9s infinite;
+}
+
+@keyframes cursorBlink {
+  0%,
+  45% {
+    opacity: 1;
+  }
+
+  46%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* =====================================
+   MAIN
+===================================== */
+
+.zivo-main {
+  width: 100%;
+  min-height: 100vh;
 
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
 
-  overflow: hidden;
+  align-items: center;
+
+  position: relative;
+
+  padding-top: 135px;
 }
 
-/* ================================= */
-/* TITLE */
-/* ================================= */
+/* =====================================
+   TITLE
+===================================== */
 
-.zivo-card h1 {
-  position: absolute;
-
-  top: 110px;
-
-  font-size: clamp(28px, 3vw, 43px);
+.hero-title {
+  font-size: clamp(30px, 3vw, 45px);
 
   font-weight: 400;
 
   letter-spacing: -1px;
 
   color: #f4f7ff;
+
+  z-index: 5;
 }
 
-.zivo-card h1 span {
-  background: linear-gradient(
-    90deg,
-    #7bdfff,
-    #b68cff,
-    #ff66ce
-  );
+.hero-title span {
+  background:
+    linear-gradient(
+      90deg,
+      #63dfff,
+      #9c8cff,
+      #ff63d5
+    );
 
   -webkit-background-clip: text;
   background-clip: text;
@@ -181,41 +148,35 @@ button {
   color: transparent;
 }
 
-/* ================================= */
-/* VOICE AREA */
-/* ================================= */
+/* =====================================
+   VOICE AREA
+===================================== */
 
 .voice-area {
-  position: relative;
-
   width: 100%;
-  height: 430px;
+  height: 470px;
+
+  position: relative;
 
   display: flex;
   align-items: center;
   justify-content: center;
+
+  margin-top: 5px;
 }
 
-/* ================================= */
-/* MICROPHONE */
-/* ================================= */
+/* =====================================
+   MICROPHONE
+===================================== */
 
 .mic-button {
-  width: 145px;
-  height: 145px;
+  width: 165px;
+  height: 165px;
 
   border-radius: 50%;
 
-  border: 2px solid rgba(0, 225, 255, 0.9);
-
-  background:
-    radial-gradient(
-      circle at 40% 35%,
-      #14233b,
-      #030713 65%
-    );
-
-  color: #63edff;
+  position: relative;
+  z-index: 10;
 
   display: flex;
   align-items: center;
@@ -223,43 +184,60 @@ button {
 
   cursor: pointer;
 
-  position: relative;
-  z-index: 10;
+  color: #62eeff;
+
+  background:
+    radial-gradient(
+      circle at 45% 35%,
+      #14243c,
+      #030713 65%
+    );
+
+  border: 2px solid #00eaff;
+
+  box-shadow:
+    0 0 15px rgba(0, 234, 255, 0.25),
+    inset 0 0 25px rgba(0, 120, 255, 0.08);
 
   transition:
     transform 0.3s ease,
     box-shadow 0.3s ease;
 }
 
-.mic-icon {
-  width: 55px;
-  height: 55px;
-
-  filter:
-    drop-shadow(0 0 8px #00eaff);
-}
-
 .mic-button:hover {
   transform: scale(1.06);
 
   box-shadow:
-    0 0 20px rgba(0, 234, 255, 0.35),
-    0 0 60px rgba(0, 234, 255, 0.15);
+    0 0 25px rgba(0, 234, 255, 0.45),
+    0 0 70px rgba(0, 180, 255, 0.15);
 }
 
-/* ================================= */
-/* ACTIVE MICROPHONE */
-/* ================================= */
+.mic-button:disabled {
+  cursor: default;
+}
+
+.mic-icon {
+  width: 62px;
+  height: 62px;
+
+  filter:
+    drop-shadow(0 0 8px #00eaff)
+    drop-shadow(0 0 18px rgba(0, 234, 255, 0.6));
+}
+
+/* =====================================
+   ACTIVE MICROPHONE
+===================================== */
 
 .mic-active {
-  border-color: #ff4dd8;
+  border-color: #ff45d4;
 
   box-shadow:
-    0 0 20px rgba(0, 234, 255, 0.7),
+    0 0 25px rgba(0, 234, 255, 0.7),
     0 0 50px rgba(0, 234, 255, 0.35),
-    0 0 90px rgba(255, 0, 190, 0.2);
+    0 0 80px rgba(255, 0, 200, 0.25);
 
-  animation: micPulse 1.6s infinite ease-in-out;
+  animation: micPulse 1.5s infinite ease-in-out;
 }
 
 @keyframes micPulse {
@@ -276,295 +254,342 @@ button {
   }
 }
 
-/* ================================= */
-/* WAVE ANIMATION */
-/* ================================= */
-
-.wave-container {
-  position: absolute;
-
-  inset: 0;
-
-  pointer-events: none;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* glow around microphone */
-
-.wave-container::before {
-  content: "";
-
-  position: absolute;
-
-  width: 300px;
-  height: 300px;
-
-  border-radius: 50%;
-
-  background:
-    radial-gradient(
-      circle,
-      rgba(0, 220, 255, 0.2),
-      transparent 65%
-    );
-
-  filter: blur(20px);
-
-  animation: centerGlow 2s infinite alternate;
-}
-
-@keyframes centerGlow {
-  from {
-    transform: scale(0.85);
-    opacity: 0.5;
-  }
-
-  to {
-    transform: scale(1.2);
-    opacity: 1;
-  }
-}
-
-/* ================================= */
-/* WAVES */
-/* ================================= */
+/* =====================================
+   WAVEFORM
+===================================== */
 
 .wave {
   position: absolute;
 
   width: 650px;
-  height: 190px;
+  height: 150px;
 
-  opacity: 0.9;
+  top: 50%;
+
+  transform: translateY(-50%);
 
   border-radius: 50%;
 
-  background: transparent;
+  pointer-events: none;
+
+  z-index: 2;
 }
 
-/* cyan wave */
+/* LEFT CYAN WAVE */
 
 .wave-left {
   right: 50%;
 
-  transform-origin: right center;
+  border-top:
+    2px solid rgba(0, 235, 255, 0.9);
 
-  border-top: 2px solid rgba(0, 234, 255, 0.8);
-  border-bottom: 2px solid rgba(0, 180, 255, 0.45);
+  border-bottom:
+    2px solid rgba(0, 180, 255, 0.35);
 
   filter:
-    drop-shadow(0 0 8px #00eaff);
+    drop-shadow(0 0 7px #00eaff);
+
+  transform-origin: right center;
 
   animation:
-    waveLeft 1.5s infinite ease-in-out;
+    waveLeft 1.3s infinite ease-in-out;
 }
 
-/* pink wave */
+/* RIGHT PINK WAVE */
 
 .wave-right {
   left: 50%;
 
-  transform-origin: left center;
+  border-top:
+    2px solid rgba(255, 0, 205, 0.9);
 
-  border-top: 2px solid rgba(255, 0, 190, 0.85);
-  border-bottom: 2px solid rgba(255, 70, 210, 0.4);
+  border-bottom:
+    2px solid rgba(255, 60, 210, 0.35);
 
   filter:
-    drop-shadow(0 0 8px #ff00c8);
+    drop-shadow(0 0 8px #ff00d0);
+
+  transform-origin: left center;
 
   animation:
-    waveRight 1.5s infinite ease-in-out;
+    waveRight 1.3s infinite ease-in-out;
 }
 
 @keyframes waveLeft {
   0% {
-    transform: scaleY(0.35) rotate(0deg);
-    opacity: 0.4;
+    transform:
+      translateY(-50%)
+      scaleY(0.3)
+      rotate(0deg);
+
+    opacity: 0.35;
   }
 
   25% {
-    transform: scaleY(1.1) rotate(-4deg);
+    transform:
+      translateY(-50%)
+      scaleY(1.2)
+      rotate(-4deg);
+
     opacity: 1;
   }
 
   50% {
-    transform: scaleY(0.55) rotate(3deg);
+    transform:
+      translateY(-50%)
+      scaleY(0.55)
+      rotate(3deg);
   }
 
   75% {
-    transform: scaleY(1) rotate(-2deg);
+    transform:
+      translateY(-50%)
+      scaleY(1.05)
+      rotate(-2deg);
   }
 
   100% {
-    transform: scaleY(0.35) rotate(0deg);
-    opacity: 0.4;
+    transform:
+      translateY(-50%)
+      scaleY(0.3)
+      rotate(0deg);
+
+    opacity: 0.35;
   }
 }
 
 @keyframes waveRight {
   0% {
-    transform: scaleY(0.35) rotate(0deg);
-    opacity: 0.4;
+    transform:
+      translateY(-50%)
+      scaleY(0.3)
+      rotate(0deg);
+
+    opacity: 0.35;
   }
 
   25% {
-    transform: scaleY(1) rotate(4deg);
+    transform:
+      translateY(-50%)
+      scaleY(1.15)
+      rotate(4deg);
+
     opacity: 1;
   }
 
   50% {
-    transform: scaleY(0.5) rotate(-3deg);
+    transform:
+      translateY(-50%)
+      scaleY(0.5)
+      rotate(-3deg);
   }
 
   75% {
-    transform: scaleY(1.15) rotate(2deg);
+    transform:
+      translateY(-50%)
+      scaleY(1.1)
+      rotate(2deg);
   }
 
   100% {
-    transform: scaleY(0.35) rotate(0deg);
-    opacity: 0.4;
+    transform:
+      translateY(-50%)
+      scaleY(0.3)
+      rotate(0deg);
+
+    opacity: 0.35;
   }
 }
 
-/* ================================= */
-/* PARTICLES */
-/* ================================= */
+/* =====================================
+   PARTICLES
+===================================== */
 
-.particles {
+.voice-particles {
   position: absolute;
 
-  width: 360px;
-  height: 360px;
+  width: 380px;
+  height: 380px;
 
   border-radius: 50%;
 
   background:
-    radial-gradient(circle at 20% 30%, #00eaff 1px, transparent 2px),
-    radial-gradient(circle at 70% 20%, #ff2bd6 1px, transparent 2px),
-    radial-gradient(circle at 80% 70%, #9f5cff 1px, transparent 2px),
-    radial-gradient(circle at 30% 80%, #00eaff 1px, transparent 2px),
-    radial-gradient(circle at 50% 10%, #ff2bd6 1px, transparent 2px);
+    radial-gradient(
+      circle at 20% 30%,
+      #00eaff 1px,
+      transparent 2px
+    ),
+    radial-gradient(
+      circle at 70% 20%,
+      #ff20d0 1px,
+      transparent 2px
+    ),
+    radial-gradient(
+      circle at 80% 70%,
+      #a050ff 1px,
+      transparent 2px
+    ),
+    radial-gradient(
+      circle at 30% 80%,
+      #00eaff 1px,
+      transparent 2px
+    );
 
   background-size:
     35px 35px,
     45px 45px,
     30px 30px,
-    50px 50px,
-    40px 40px;
+    50px 50px;
 
-  opacity: 0.5;
+  opacity: 0.55;
 
-  animation: particlesMove 5s linear infinite;
+  filter: blur(0.2px);
+
+  animation:
+    particleRotate 5s linear infinite;
+
+  pointer-events: none;
 }
 
-@keyframes particlesMove {
+@keyframes particleRotate {
   from {
-    transform: rotate(0deg) scale(0.9);
+    transform:
+      rotate(0deg)
+      scale(0.85);
   }
 
   to {
-    transform: rotate(360deg) scale(1.1);
+    transform:
+      rotate(360deg)
+      scale(1.08);
   }
 }
 
-/* ================================= */
-/* STATUS */
-/* ================================= */
+/* =====================================
+   STATUS
+===================================== */
 
 .voice-status {
   position: absolute;
 
-  bottom: 75px;
+  bottom: 105px;
 
   font-size: 18px;
 
-  color: #8895aa;
+  color: #8996ad;
 
-  letter-spacing: 0.4px;
+  letter-spacing: 0.3px;
+
+  z-index: 15;
 }
 
-.listening + .voice-status {
+.is-listening + .voice-status {
   color: #62eaff;
 }
 
-.status-arrow {
+/* =====================================
+   RESPONSE
+===================================== */
+
+.zivo-response {
   position: absolute;
 
-  bottom: 105px;
+  bottom: 55px;
 
-  font-size: 22px;
+  max-width: 700px;
 
-  color: #aab4c8;
-
-  animation: arrowMove 1.2s infinite;
-}
-
-@keyframes arrowMove {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(-7px);
-  }
-}
-
-/* ================================= */
-/* FOOTER */
-/* ================================= */
-
-footer {
   text-align: center;
 
-  color: #4e5870;
+  padding: 8px 18px;
 
-  font-size: 14px;
+  font-size: 16px;
 
-  letter-spacing: 2px;
+  color: #e8ecf5;
 
-  padding-bottom: 25px;
+  z-index: 20;
+
+  animation: responseAppear 0.3s ease;
 }
 
-/* ================================= */
-/* RESPONSIVE */
-/* ================================= */
+@keyframes responseAppear {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =====================================
+   FOOTER
+===================================== */
+
+footer {
+  position: absolute;
+
+  bottom: 22px;
+
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  color: #4f5b72;
+
+  font-size: 13px;
+
+  letter-spacing: 2px;
+}
+
+/* =====================================
+   RESPONSIVE
+===================================== */
 
 @media (max-width: 768px) {
 
-  .zivo-header {
+  .zivo-logo {
+    top: 30px;
+    font-size: 38px;
+  }
+
+  .zivo-main {
+    padding-top: 115px;
+  }
+
+  .hero-title {
+    font-size: 28px;
+
+    text-align: center;
+
     padding: 0 20px;
   }
 
-  .zivo-card {
-    width: 94vw;
-    height: 70vh;
-  }
-
-  .zivo-card h1 {
-    top: 65px;
-    font-size: 27px;
-    text-align: center;
+  .voice-area {
+    height: 430px;
   }
 
   .mic-button {
-    width: 120px;
-    height: 120px;
+    width: 130px;
+    height: 130px;
   }
 
   .mic-icon {
-    width: 45px;
-    height: 45px;
+    width: 50px;
+    height: 50px;
   }
 
   .wave {
-    width: 400px;
+    width: 390px;
   }
 
   .voice-status {
-    bottom: 55px;
+    bottom: 80px;
+  }
+
+  footer {
+    font-size: 10px;
+    white-space: nowrap;
   }
 }
