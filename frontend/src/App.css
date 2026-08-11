@@ -1,344 +1,570 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Orbitron:wght@700;900&display=swap');
-
 * {
-  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: 'Inter', sans-serif;
+  box-sizing: border-box;
 }
 
 body {
-  background-color: #05070f;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  font-family: Inter, Arial, sans-serif;
+  background: #02050d;
+  color: white;
+}
+
+button {
+  font-family: inherit;
+}
+
+.zivo-app {
   min-height: 100vh;
-  color: #e2e8f0;
-  padding: 20px;
-  background-image: 
-    radial-gradient(circle at 10% 20%, rgba(0, 229, 255, 0.08) 0%, transparent 40%),
-    radial-gradient(circle at 90% 80%, rgba(147, 51, 234, 0.08) 0%, transparent 40%);
-}
-
-.app-window {
-  width: 1000px;
-  height: 720px;
-  background: rgba(13, 17, 28, 0.85);
-  backdrop-filter: blur(16px);
-  border-radius: 20px;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 
-    0 0 0 1px rgba(0, 229, 255, 0.2),
-    0 0 30px rgba(0, 229, 255, 0.15),
-    0 20px 50px rgba(0, 0, 0, 0.8);
   overflow: hidden;
+  position: relative;
+
+  background:
+    radial-gradient(
+      circle at 50% 45%,
+      rgba(0, 180, 255, 0.08),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 80% 80%,
+      rgba(255, 0, 170, 0.06),
+      transparent 30%
+    ),
+    linear-gradient(
+      135deg,
+      #020a12,
+      #030711 45%,
+      #080312
+    );
 }
 
-.window-header {
-  height: 50px;
+/* ================================= */
+/* HEADER */
+/* ================================= */
+
+.zivo-header {
+  height: 100px;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+
+  padding: 0 55px;
 }
 
-.window-dots {
-  display: flex;
-  gap: 8px;
-}
+.header-button {
+  width: 48px;
+  height: 48px;
 
-.dot {
-  width: 12px;
-  height: 12px;
   border-radius: 50%;
-}
 
-.dot-red { background-color: #ff5f56; }
-.dot-yellow { background-color: #ffbd2e; }
-.dot-green { background-color: #27c93f; }
-
-.logo-text {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 26px;
-  font-weight: 900;
-  color: #00e5ff;
-  letter-spacing: 2px;
-  text-shadow: 
-    0 0 10px rgba(0, 229, 255, 0.8),
-    0 0 20px rgba(0, 229, 255, 0.4);
-  transform: skewX(-5deg);
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  color: #94a3b8;
-}
-
-.header-icon {
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.header-icon:hover {
-  color: #00e5ff;
-}
-
-.avatar-header {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: radial-gradient(circle, #00e5ff 0%, #030712 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #00e5ff;
-  box-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+
+  color: #aeb8cc;
+  font-size: 20px;
+
+  border: 1px solid rgba(100, 180, 255, 0.15);
+
+  background: rgba(255, 255, 255, 0.015);
+
+  transition: 0.3s;
 }
 
-.app-body {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-  padding: 16px;
+.header-button:hover {
+  color: #00eaff;
+
+  border-color: rgba(0, 234, 255, 0.5);
+
+  box-shadow:
+    0 0 20px rgba(0, 234, 255, 0.15);
 }
 
-.chat-area {
-  flex: 1;
-  background: rgba(10, 14, 23, 0.7);
-  border: 1px solid rgba(0, 229, 255, 0.15);
-  border-radius: 16px;
+.zivo-logo {
+  position: relative;
+
+  font-size: 27px;
+  font-weight: 400;
+  letter-spacing: 4px;
+}
+
+.zivo-logo span {
+  position: absolute;
+
+  width: 7px;
+  height: 7px;
+
+  background: #00eaff;
+
+  border-radius: 50%;
+
+  left: 50%;
+  bottom: -14px;
+
+  transform: translateX(-50%);
+
+  box-shadow:
+    0 0 8px #00eaff,
+    0 0 18px #00eaff;
+}
+
+/* ================================= */
+/* MAIN */
+/* ================================= */
+
+.zivo-main {
+  min-height: calc(100vh - 160px);
+
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
   padding: 20px;
-  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
 }
 
-.messages-container {
-  flex: 1;
+.zivo-card {
+  width: min(1350px, 92vw);
+  height: min(750px, 72vh);
+
+  border-radius: 25px;
+
+  border: 1px solid rgba(0, 180, 255, 0.22);
+
+  background:
+    radial-gradient(
+      circle at 50% 50%,
+      rgba(0, 150, 255, 0.035),
+      transparent 45%
+    ),
+    rgba(3, 8, 18, 0.55);
+
+  position: relative;
+
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  overflow-y: auto;
-  padding-right: 8px;
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
 }
 
-.message-row {
+/* ================================= */
+/* TITLE */
+/* ================================= */
+
+.zivo-card h1 {
+  position: absolute;
+
+  top: 110px;
+
+  font-size: clamp(28px, 3vw, 43px);
+
+  font-weight: 400;
+
+  letter-spacing: -1px;
+
+  color: #f4f7ff;
+}
+
+.zivo-card h1 span {
+  background: linear-gradient(
+    90deg,
+    #7bdfff,
+    #b68cff,
+    #ff66ce
+  );
+
+  -webkit-background-clip: text;
+  background-clip: text;
+
+  color: transparent;
+}
+
+/* ================================= */
+/* VOICE AREA */
+/* ================================= */
+
+.voice-area {
+  position: relative;
+
+  width: 100%;
+  height: 430px;
+
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  max-width: 80%;
+  align-items: center;
+  justify-content: center;
 }
 
-.message-row.user {
-  align-self: flex-end;
-  flex-direction: row-reverse;
-}
+/* ================================= */
+/* MICROPHONE */
+/* ================================= */
 
-.msg-avatar {
-  width: 38px;
-  height: 38px;
+.mic-button {
+  width: 145px;
+  height: 145px;
+
   border-radius: 50%;
+
+  border: 2px solid rgba(0, 225, 255, 0.9);
+
+  background:
+    radial-gradient(
+      circle at 40% 35%,
+      #14233b,
+      #030713 65%
+    );
+
+  color: #63edff;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-}
 
-.msg-avatar.bot {
-  background: radial-gradient(circle, #00e5ff 0%, #030712 100%);
-  border: 1px solid #00e5ff;
-  box-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
-  color: #fff;
-}
-
-.msg-avatar.user {
-  background: radial-gradient(circle, #a855f7 0%, #030712 100%);
-  border: 1px solid #a855f7;
-  box-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
-  color: #fff;
-}
-
-.msg-content {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.bubble {
-  padding: 12px 18px;
-  border-radius: 16px;
-  font-size: 14px;
-  line-height: 1.4;
-}
-
-.msg-row.bot .bubble {
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #e2e8f0;
-}
-
-.msg-row.user .bubble {
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(126, 34, 206, 0.3) 100%);
-  border: 1px solid rgba(168, 85, 247, 0.4);
-  color: #f3e8ff;
-}
-
-.msg-time {
-  font-size: 10px;
-  color: #64748b;
-  margin-top: 2px;
-}
-
-.msg-row.user .msg-time {
-  text-align: right;
-}
-
-.status-card {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(0, 229, 255, 0.2);
-  border-radius: 12px;
-  padding: 12px 16px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  width: fit-content;
-  margin-left: 50px;
-}
-
-.status-icon {
-  width: 32px;
-  height: 32px;
-  background: rgba(0, 229, 255, 0.1);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #00e5ff;
-}
-
-.status-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.status-title {
-  font-size: 11px;
-  color: #00e5ff;
-  font-weight: 500;
-}
-
-.status-desc {
-  font-size: 13px;
-  color: #e2e8f0;
-  font-weight: 500;
-}
-
-.status-check {
-  color: #00e5ff;
-  margin-left: 20px;
-}
-
-.typing-bubble {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.typing-dots {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-}
-
-.typing-dots span {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: #00e5ff;
-  display: inline-block;
-  animation: pulse 1.4s infinite ease-in-out both;
-}
-
-.typing-dots span:nth-child(1) { animation-delay: -0.32s; }
-.typing-dots span:nth-child(2) { animation-delay: -0.16s; }
-
-@keyframes pulse {
-  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-  40% { transform: scale(1); opacity: 1; }
-}
-
-.input-container {
-  margin-top: 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(0, 229, 255, 0.2);
-  border-radius: 12px;
-  padding: 8px 12px;
-}
-
-.input-container:focus-within {
-  border-color: rgba(0, 229, 255, 0.5);
-  box-shadow: 0 0 20px rgba(0, 229, 255, 0.15);
-}
-
-.mic-btn {
-  background: transparent;
-  border: none;
-  color: #00e5ff;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px;
-  border-radius: 8px;
+
+  position: relative;
+  z-index: 10;
+
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
-.chat-input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: #fff;
-  font-size: 14px;
+.mic-icon {
+  width: 55px;
+  height: 55px;
+
+  filter:
+    drop-shadow(0 0 8px #00eaff);
 }
 
-.chat-input::placeholder {
-  color: #64748b;
+.mic-button:hover {
+  transform: scale(1.06);
+
+  box-shadow:
+    0 0 20px rgba(0, 234, 255, 0.35),
+    0 0 60px rgba(0, 234, 255, 0.15);
 }
 
-.send-btn {
-  background: #00e5ff;
-  border: none;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #030712;
-  cursor: pointer;
-  box-shadow: 0 0 10px rgba(255, 59, 59, 0.4);
-}
-.mic-btn.listening {
-  animation: zivoListening 1s infinite;
+/* ================================= */
+/* ACTIVE MICROPHONE */
+/* ================================= */
+
+.mic-active {
+  border-color: #ff4dd8;
+
+  box-shadow:
+    0 0 20px rgba(0, 234, 255, 0.7),
+    0 0 50px rgba(0, 234, 255, 0.35),
+    0 0 90px rgba(255, 0, 190, 0.2);
+
+  animation: micPulse 1.6s infinite ease-in-out;
 }
 
-@keyframes zivoListening {
+@keyframes micPulse {
   0% {
     transform: scale(1);
   }
 
   50% {
-    transform: scale(1.15);
+    transform: scale(1.06);
   }
 
   100% {
     transform: scale(1);
+  }
+}
+
+/* ================================= */
+/* WAVE ANIMATION */
+/* ================================= */
+
+.wave-container {
+  position: absolute;
+
+  inset: 0;
+
+  pointer-events: none;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* glow around microphone */
+
+.wave-container::before {
+  content: "";
+
+  position: absolute;
+
+  width: 300px;
+  height: 300px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(0, 220, 255, 0.2),
+      transparent 65%
+    );
+
+  filter: blur(20px);
+
+  animation: centerGlow 2s infinite alternate;
+}
+
+@keyframes centerGlow {
+  from {
+    transform: scale(0.85);
+    opacity: 0.5;
+  }
+
+  to {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+/* ================================= */
+/* WAVES */
+/* ================================= */
+
+.wave {
+  position: absolute;
+
+  width: 650px;
+  height: 190px;
+
+  opacity: 0.9;
+
+  border-radius: 50%;
+
+  background: transparent;
+}
+
+/* cyan wave */
+
+.wave-left {
+  right: 50%;
+
+  transform-origin: right center;
+
+  border-top: 2px solid rgba(0, 234, 255, 0.8);
+  border-bottom: 2px solid rgba(0, 180, 255, 0.45);
+
+  filter:
+    drop-shadow(0 0 8px #00eaff);
+
+  animation:
+    waveLeft 1.5s infinite ease-in-out;
+}
+
+/* pink wave */
+
+.wave-right {
+  left: 50%;
+
+  transform-origin: left center;
+
+  border-top: 2px solid rgba(255, 0, 190, 0.85);
+  border-bottom: 2px solid rgba(255, 70, 210, 0.4);
+
+  filter:
+    drop-shadow(0 0 8px #ff00c8);
+
+  animation:
+    waveRight 1.5s infinite ease-in-out;
+}
+
+@keyframes waveLeft {
+  0% {
+    transform: scaleY(0.35) rotate(0deg);
+    opacity: 0.4;
+  }
+
+  25% {
+    transform: scaleY(1.1) rotate(-4deg);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scaleY(0.55) rotate(3deg);
+  }
+
+  75% {
+    transform: scaleY(1) rotate(-2deg);
+  }
+
+  100% {
+    transform: scaleY(0.35) rotate(0deg);
+    opacity: 0.4;
+  }
+}
+
+@keyframes waveRight {
+  0% {
+    transform: scaleY(0.35) rotate(0deg);
+    opacity: 0.4;
+  }
+
+  25% {
+    transform: scaleY(1) rotate(4deg);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scaleY(0.5) rotate(-3deg);
+  }
+
+  75% {
+    transform: scaleY(1.15) rotate(2deg);
+  }
+
+  100% {
+    transform: scaleY(0.35) rotate(0deg);
+    opacity: 0.4;
+  }
+}
+
+/* ================================= */
+/* PARTICLES */
+/* ================================= */
+
+.particles {
+  position: absolute;
+
+  width: 360px;
+  height: 360px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(circle at 20% 30%, #00eaff 1px, transparent 2px),
+    radial-gradient(circle at 70% 20%, #ff2bd6 1px, transparent 2px),
+    radial-gradient(circle at 80% 70%, #9f5cff 1px, transparent 2px),
+    radial-gradient(circle at 30% 80%, #00eaff 1px, transparent 2px),
+    radial-gradient(circle at 50% 10%, #ff2bd6 1px, transparent 2px);
+
+  background-size:
+    35px 35px,
+    45px 45px,
+    30px 30px,
+    50px 50px,
+    40px 40px;
+
+  opacity: 0.5;
+
+  animation: particlesMove 5s linear infinite;
+}
+
+@keyframes particlesMove {
+  from {
+    transform: rotate(0deg) scale(0.9);
+  }
+
+  to {
+    transform: rotate(360deg) scale(1.1);
+  }
+}
+
+/* ================================= */
+/* STATUS */
+/* ================================= */
+
+.voice-status {
+  position: absolute;
+
+  bottom: 75px;
+
+  font-size: 18px;
+
+  color: #8895aa;
+
+  letter-spacing: 0.4px;
+}
+
+.listening + .voice-status {
+  color: #62eaff;
+}
+
+.status-arrow {
+  position: absolute;
+
+  bottom: 105px;
+
+  font-size: 22px;
+
+  color: #aab4c8;
+
+  animation: arrowMove 1.2s infinite;
+}
+
+@keyframes arrowMove {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+/* ================================= */
+/* FOOTER */
+/* ================================= */
+
+footer {
+  text-align: center;
+
+  color: #4e5870;
+
+  font-size: 14px;
+
+  letter-spacing: 2px;
+
+  padding-bottom: 25px;
+}
+
+/* ================================= */
+/* RESPONSIVE */
+/* ================================= */
+
+@media (max-width: 768px) {
+
+  .zivo-header {
+    padding: 0 20px;
+  }
+
+  .zivo-card {
+    width: 94vw;
+    height: 70vh;
+  }
+
+  .zivo-card h1 {
+    top: 65px;
+    font-size: 27px;
+    text-align: center;
+  }
+
+  .mic-button {
+    width: 120px;
+    height: 120px;
+  }
+
+  .mic-icon {
+    width: 45px;
+    height: 45px;
+  }
+
+  .wave {
+    width: 400px;
+  }
+
+  .voice-status {
+    bottom: 55px;
   }
 }

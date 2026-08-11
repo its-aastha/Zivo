@@ -1,175 +1,77 @@
-import React, { useEffect, useRef, useState } from "react";
-import {
-  Bot,
-  User,
-  Mic,
-  Send,
-  Code,
-  CheckCircle2,
-} from "lucide-react";
-
+import { useRef, useState } from "react";
 import "./App.css";
 
-interface Message {
-  id: string;
-  sender: "bot" | "user";
-  text?: string;
-  time?: string;
-  type?: "text" | "status" | "typing";
-  statusDetails?: {
-    title: string;
-    description: string;
-  };
-}
-
-function App(): React.ReactElement {
-  const [inputValue, setInputValue] = useState("");
-  const [isSending, setIsSending] = useState(false);
+function App() {
   const [isListening, setIsListening] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [response, setResponse] = useState("");
 
-  const bottomAnchorRef = useRef<HTMLDivElement | null>(null);
+  const recognitionRef = useRef<any>(null);
 
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "m1",
-      sender: "bot",
-      text: "Hello! How can I assist you today?",
-      time: "10:30 AM",
-      type: "text",
-    },
-  ]);
-
-  const nowTime = (): string =>
-    new Date().toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-
-  useEffect(() => {
-    bottomAnchorRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "end",
-    });
-  }, [messages, isSending]);
-
-  // ==============================
-  // ZIVO SPEAKS
-  // ==============================
-
-  const speak = (text: string) => {
-    if (!text) return;
-
-    window.speechSynthesis.cancel();
-
-    const speech = new SpeechSynthesisUtterance(text);
-
-    speech.lang = "en-US";
-    speech.rate = 1;
-    speech.pitch = 1;
-
-    window.speechSynthesis.speak(speech);
-  };
-
-  // ==============================
-  // SEND COMMAND TO BACKEND
-  // ==============================
+  // --------------------------------
+  // SEND COMMAND TO FASTAPI
+  // --------------------------------
 
   const sendCommand = async (command: string) => {
-    command = command.trim();
+    if (!command.trim()) return;
 
-    if (!command || isSending) return;
-
-    // Add user message
-    const userMessage: Message = {
-      id: `${Date.now()}-user`,
-      sender: "user",
-      text: command,
-      time: nowTime(),
-      type: "text",
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-
-    setInputValue("");
-    setIsSending(true);
+    setIsProcessing(true);
+    setResponse("");
 
     try {
-      const response = await fetch(
-        "http://127.0.0.1:8000/command",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            command: command,
-          }),
-        }
-      );
+      const res = await fetch("http://127.0.0.1:8000/command", {
+        method: "POST",
 
-      if (!response.ok) {
-        throw new Error(
-          `Backend error: ${response.status}`
-        );
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify({
+          command: command,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Backend request failed");
       }
 
-      const data = await response.json();
+      const data = await res.json();
 
       console.log("ZIVO RESPONSE:", data);
 
-      const botResponse =
-        data.response || "I could not understand that.";
-
-      // Add ZIVO message
-      const botMessage: Message = {
-        id: `${Date.now()}-bot`,
-        sender: "bot",
-        text: botResponse,
-        time: nowTime(),
-        type: "text",
-      };
-
-      setMessages((prev) => [...prev, botMessage]);
-
-      // ZIVO speaks
-      speak(botResponse);
+      setResponse(
+        typeof data.response === "string"
+          ? data.response
+          : JSON.stringify(data.response)
+      );
 
     } catch (error) {
-      console.error(error);
+      console.error("ZIVO ERROR:", error);
 
-      const errorMessage: Message = {
-        id: `${Date.now()}-error`,
-        sender: "bot",
-        text:
-          error instanceof Error
-            ? error.message
-            : "Unable to connect to ZIVO backend.",
-        time: nowTime(),
-        type: "text",
-      };
-
-      setMessages((prev) => [...prev, errorMessage]);
-
-    } finally {
-      setIsSending(false);
+      setResponse(
+        "Unable to connect to ZIVO backend."
+      );
     }
+
+    setIsProcessing(false);
   };
 
-  // ==============================
-  // VOICE COMMAND
-  // ==============================
+
+  // --------------------------------
+  // START VOICE RECOGNITION
+  // --------------------------------
 
   const startListening = () => {
-    if (isSending || isListening) return;
 
     const SpeechRecognition =
-      (window as any).SpeechRecognition ||
-      (window as any).webkitSpeechRecognition;
+      window.SpeechRecognition ||
+      window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
       alert(
         "Speech recognition is not supported. Please use Google Chrome."
       );
+
       return;
     }
 
@@ -177,31 +79,36 @@ function App(): React.ReactElement {
 
     recognition.lang = "en-US";
 
-    // Only listen for one command
     recognition.continuous = false;
 
-    // Don't show partial results
     recognition.interimResults = false;
 
+    recognitionRef.current = recognition;
+
+
     recognition.onstart = () => {
-      console.log("🎤 ZIVO listening...");
+      console.log("ZIVO LISTENING...");
+
       setIsListening(true);
+      setResponse("");
     };
 
-    recognition.onresult = (event: any) => {
-      const transcript =
+
+    recognition.onresult = async (event: any) => {
+
+      const command =
         event.results[0][0].transcript;
 
-      console.log("🎤 User said:", transcript);
+      console.log("USER SAID:", command);
 
-      // Show recognized text
-      setInputValue(transcript);
+      setIsListening(false);
 
-      // Send command to ZIVO
-      sendCommand(transcript);
+      await sendCommand(command);
     };
 
+
     recognition.onerror = (event: any) => {
+
       console.error(
         "Speech recognition error:",
         event.error
@@ -210,202 +117,190 @@ function App(): React.ReactElement {
       setIsListening(false);
     };
 
+
     recognition.onend = () => {
-      console.log("🎤 ZIVO stopped listening");
+
       setIsListening(false);
+
+      console.log("ZIVO STOPPED LISTENING");
     };
+
 
     recognition.start();
   };
 
-  // ==============================
-  // ENTER KEY
-  // ==============================
 
-  const handleKeyDown = (
-    event: React.KeyboardEvent<HTMLInputElement>
-  ) => {
-    if (event.key === "Enter") {
-      sendCommand(inputValue);
+  // --------------------------------
+  // STOP LISTENING
+  // --------------------------------
+
+  const stopListening = () => {
+
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+
+    setIsListening(false);
+  };
+
+
+  // --------------------------------
+  // MICROPHONE CLICK
+  // --------------------------------
+
+  const toggleListening = () => {
+
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
     }
   };
 
+
   return (
-    <div className="app">
+    <div className="zivo-app">
 
       {/* HEADER */}
 
-      <header className="top-header">
-        <div className="logo">
-          ZIVO
+      <header className="zivo-header">
+
+        <div className="header-button">
+          ☰
         </div>
+
+        <div className="zivo-logo">
+          ZIVO
+          <span></span>
+        </div>
+
+        <div className="header-button">
+          ⚙
+        </div>
+
       </header>
 
-      {/* CHAT */}
 
-      <div className="app-body">
+      {/* MAIN */}
 
-        <main className="chat-area">
+      <main className="zivo-main">
 
-          <div className="messages-container">
+        <div className="zivo-card">
 
-            {messages.map((msg) => {
+          <h1>
+            Hi! How can{" "}
+            <span>I help you?</span>
+          </h1>
 
-              // STATUS CARD
 
-              if (
-                msg.type === "status" &&
-                msg.statusDetails
-              ) {
-                return (
-                  <div
-                    key={msg.id}
-                    className="status-card"
-                  >
-                    <div className="status-icon">
-                      <Code size={18} />
-                    </div>
+          {/* VOICE AREA */}
 
-                    <div className="status-info">
-                      <span className="status-title">
-                        {msg.statusDetails.title}
-                      </span>
+          <div
+            className={`voice-area ${
+              isListening ? "listening" : ""
+            }`}
+          >
 
-                      <span className="status-desc">
-                        {msg.statusDetails.description}
-                      </span>
-                    </div>
+            {/* ANIMATION ONLY WHEN LISTENING */}
 
-                    <div className="status-check">
-                      <CheckCircle2 size={20} />
-                    </div>
-                  </div>
-                );
-              }
+            {isListening && (
+              <div className="wave-container">
 
-              // NORMAL MESSAGE
+                <div className="wave wave-left"></div>
 
-              return (
-                <div
-                  key={msg.id}
-                  className={`message-row msg-row ${msg.sender}`}
-                >
-                  <div
-                    className={`msg-avatar ${msg.sender}`}
-                  >
-                    {msg.sender === "bot" ? (
-                      <Bot size={20} />
-                    ) : (
-                      <User size={20} />
-                    )}
-                  </div>
+                <div className="wave wave-right"></div>
 
-                  <div className="msg-content">
+                <div className="particles"></div>
 
-                    <div className="bubble">
-                      {msg.text}
-                    </div>
-
-                    {msg.time && (
-                      <div className="msg-time">
-                        {msg.time}
-                      </div>
-                    )}
-
-                  </div>
-                </div>
-              );
-            })}
-
-            {/* THINKING */}
-
-            {isSending && (
-              <div className="message-row msg-row bot">
-
-                <div className="msg-avatar bot">
-                  <Bot size={20} />
-                </div>
-
-                <div className="msg-content">
-
-                  <div className="bubble typing-bubble">
-                    <span>
-                      ZIVO is thinking...
-                    </span>
-
-                    <div className="typing-dots">
-                      <span />
-                      <span />
-                      <span />
-                    </div>
-                  </div>
-
-                </div>
               </div>
             )}
 
-            <div ref={bottomAnchorRef} />
 
-          </div>
-
-          {/* INPUT */}
-
-          <div className="input-container">
-
-            {/* MIC BUTTON */}
+            {/* MICROPHONE */}
 
             <button
-              className={`mic-btn ${
-                isListening ? "listening" : ""
+              className={`mic-button ${
+                isListening ? "mic-active" : ""
               }`}
-              type="button"
-              onClick={startListening}
-              disabled={isSending}
+              onClick={toggleListening}
             >
-              <Mic size={18} />
-            </button>
 
-            {/* TEXT INPUT */}
+              <svg
+                viewBox="0 0 24 24"
+                className="mic-icon"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+              >
 
-            <input
-              type="text"
-              className="chat-input"
-              placeholder={
-                isListening
-                  ? "Listening..."
-                  : "Ask ZIVO anything..."
-              }
-              value={inputValue}
-              onChange={(e) =>
-                setInputValue(e.target.value)
-              }
-              onKeyDown={handleKeyDown}
-              disabled={isListening}
-            />
+                <rect
+                  x="8"
+                  y="3"
+                  width="8"
+                  height="12"
+                  rx="4"
+                />
 
-            {/* SEND */}
+                <path d="M5 11a7 7 0 0 0 14 0" />
 
-            <button
-              className="send-btn"
-              onClick={() =>
-                sendCommand(inputValue)
-              }
-              type="button"
-              disabled={
-                isSending ||
-                !inputValue.trim()
-              }
-            >
-              <Send size={18} />
+                <path d="M12 18v3" />
+
+                <path d="M8 21h8" />
+
+              </svg>
+
             </button>
 
           </div>
 
-        </main>
 
-      </div>
+          {/* STATUS */}
+
+          <div className="voice-status">
+
+            {isListening
+              ? "Listening..."
+              : isProcessing
+              ? "ZIVO is thinking..."
+              : "Click to start listening"}
+
+          </div>
+
+
+          {/* RESPONSE */}
+
+          {response && (
+            <div className="zivo-response">
+              {response}
+            </div>
+          )}
+
+        </div>
+
+      </main>
+
+
+      {/* FOOTER */}
+
+      <footer>
+        ZIVO · Your Voice. Your Assistant.
+      </footer>
+
     </div>
   );
 }
 
+
 export default App;
+
+
+// --------------------------------
+// TYPESCRIPT SUPPORT
+// --------------------------------
+
+declare global {
+  interface Window {
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
+  }
+}

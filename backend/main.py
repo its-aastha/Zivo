@@ -4,7 +4,13 @@ from pydantic import BaseModel
 
 from agent.command_handler import handle_command
 
+
 app = FastAPI()
+
+
+# --------------------------------
+# CORS
+# --------------------------------
 
 app.add_middleware(
     CORSMiddleware,
@@ -15,14 +21,28 @@ app.add_middleware(
 )
 
 
+# --------------------------------
+# REQUEST MODEL
+# --------------------------------
+
 class CommandRequest(BaseModel):
     command: str
 
 
+# --------------------------------
+# HOME
+# --------------------------------
+
 @app.get("/")
 def home():
-    return {"message": "ZIVO backend is running"}
+    return {
+        "message": "ZIVO backend is running"
+    }
 
+
+# --------------------------------
+# COMMAND
+# --------------------------------
 
 @app.post("/command")
 def execute_command(request: CommandRequest):
