@@ -127,7 +127,7 @@ ZIVO/
 ## 📸 Dashboard
 
 <p align="center">
-  <img src="assets/UI.png" alt="ZIVO Dashboard" width="900">
+  <img src="assets/New-UI.png" alt="ZIVO Dashboard" width="900">
 </p>
 
 ## Notes
