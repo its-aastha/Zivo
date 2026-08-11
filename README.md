@@ -53,16 +53,15 @@ The app will prompt for a command and print the parsed Gemini output before exec
 - `Create app.py on desktop`
 - `Create Project folder in documents`
 
-Type `exit` to quit.
 
-## How it works
+#### Voice Interaction / How it works 
 
-User can enter the query using two way :
-  - Text 
-  - voice command 
-
-it convert the speech-to-text and then perform the speccific task
-it store the data in the Drive not on cloud
+- Added browser-based Speech Recognition.
+- Clicking the microphone starts voice listening.
+- The UI displays `Listening...` while ZIVO is listening.
+- Voice waveform animation appears only when the microphone is active.
+- After speech is recognized, the command is automatically sent to the backend.
+- Added processing state with `ZIVO is thinking...`.
 
 1. `open_application`
 2. `create_file`
@@ -73,37 +72,57 @@ The command handler then routes that JSON to the matching tool in `backend/tools
 ## 📁 Project Structure
 
 ```text
-zivo/
+ZIVO/
+│
 ├── backend/
 │   ├── agent/
-│   │   ├── brain.py            # AI reasoning & decision engine
-│   │   ├── command_handler.py  # Routes parsed commands to execution tools
-│   │   ├── local_parser.py     # Fallback local string parser
-│   │   └── prompt.py           # System prompts for Gemini
+│   │   ├── __init__.py            # Makes agent a Python package
+│   │   ├── brain.py               # Gemini-based command understanding
+│   │   ├── command_handler.py     # Routes commands to tools
+│   │   ├── local_parser.py        # Local command parsing
+│   │   └── prompt.py              # Gemini system prompt
+│   │
 │   ├── tools/
-│   │   ├── app_finder.py       # Scans system for installed applications
-│   │   ├── app_tools.py        # Logic to launch apps
-│   │   └── file_tools.py       # Logic to create files/folders (Desktop, C:\\, etc.)
+│   │   ├── __init__.py            # Makes tools a Python package
+│   │   ├── app_finder.py          # Finds installed applications
+│   │   ├── app_tools.py           # Opens Windows applications
+│   │   └── file_tools.py          # Creates files and folders
+│   │
 │   ├── utils/
-│   │   ├── fuzzy_match.py      # Matching helper for app names
-│   │   └── gemini_client.py   # Gemini API integration wrapper
-│   ├── .env                    # Environment variables
-│   ├── main.py                 # FastAPI server entry point
-│   └── requirements.txt        # Python backend dependencies
+│   │   ├── __init__.py            # Makes utils a Python package
+│   │   ├── fuzzy_match.py         # Fuzzy matching utilities
+│   │   └── gemini_client.py       # Gemini API client
+│   │
+│   ├── .env                       # Environment variables (not committed)
+│   ├── .gitignore                 # Backend Git ignore rules
+│   ├── main.py                    # FastAPI backend entry point
+│   └── requirements.txt           # Python dependencies
 │
-└── frontend/
-    ├── src/
-    │   ├── assets/             # Images and design assets
-    │   ├── components/
-    │   │   └── VoiceButton.jsx # Voice capture component
-    │   ├── App.css             # Glassmorphism styling
-    │   ├── App.tsx             # Main React application shell
-    │   ├── index.css           # Global CSS styles
-    │   └── main.tsx            # React DOM rendering entry
-    ├── index.html              # Main HTML template
-    ├── package.json            # Node dependencies and scripts
-    ├── tsconfig.json           # TypeScript configuration
-    └── vite.config.ts          # Vite build options
+├── frontend/
+│   ├── public/                    # Public assets
+│   │
+│   ├── src/
+│   │   ├── assets/                # Static assets
+│   │   ├── components/
+│   │   │   └── VoiceButton.jsx    # Voice capture component
+│   │   ├── api.ts                 # Frontend ↔ FastAPI communication
+│   │   ├── App.css                # ZIVO voice UI styling
+│   │   ├── App.tsx                # Main React application shell
+│   │   ├── index.css              # Global CSS styles
+│   │   └── main.tsx               # React DOM rendering entry
+│   │
+│   ├── .gitignore                 # Frontend Git ignore rules
+│   ├── index.html                 # Main HTML template
+│   ├── package.json               # Node dependencies and scripts
+│   ├── package-lock.json          # Locked dependency versions
+│   ├── README.md                  # Frontend documentation
+│   ├── tsconfig.app.json          # TypeScript app configuration
+│   ├── tsconfig.json              # TypeScript configuration
+│   ├── tsconfig.node.json         # Node/Vite TypeScript configuration
+│   └── vite.config.ts             # Vite build configuration
+│
+├── .gitignore                     # Root Git ignore rules
+└── README.md                      # Main ZIVO documentation
 ```
 ## 📸 Dashboard
 
