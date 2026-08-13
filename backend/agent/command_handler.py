@@ -190,7 +190,7 @@ def handle_command(command: str):
     if action == "create_folder":
 
         folder_name = result.get(
-            "foldername"
+            "folder_name"
         )
 
         location = result.get(
