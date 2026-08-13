@@ -8,6 +8,7 @@ def normalize_filename(value: str) -> str:
 
     value = value.strip()
 
+    #Convert the file text into the specific
     # "Aastha dot txt" -> "Aastha.txt"
     value = re.sub(
         r"\s+dot\s+([a-zA-Z0-9]+)$",
