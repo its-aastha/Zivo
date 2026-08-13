@@ -1,16 +1,16 @@
-from agent.brain import understand
+from agent.brain import understand, generate_code
+from agent.local_router import local_route
 
 from tools.app_tools import open_application
 from tools.file_tools import create_file, create_folder
+from tools.code_tools import run_python_code
 
+
+# ==========================================
+# FALLBACK APPLICATION EXTRACTOR
+# ==========================================
 
 def extract_application(command: str):
-    """
-    Fallback application extractor.
-
-    Used when Gemini understands the action but
-    does not provide the application name.
-    """
 
     command = command.strip().lower()
 
@@ -27,7 +27,6 @@ def extract_application(command: str):
 
             app = command[len(prefix):].strip()
 
-            # Remove common words
             app = app.replace("please ", "")
             app = app.replace("application ", "")
             app = app.replace("app ", "")
@@ -37,6 +36,10 @@ def extract_application(command: str):
     return None
 
 
+# ==========================================
+# MAIN COMMAND HANDLER
+# ==========================================
+
 def handle_command(command: str):
 
     command = command.strip()
@@ -44,33 +47,224 @@ def handle_command(command: str):
     if not command:
         return "Please give me a command."
 
+
     # ==========================================
-    # STEP 1: UNDERSTAND COMMAND
+    # STEP 1: LOCAL ROUTER
+    # ==========================================
+    # Commands that can be handled without Gemini
+    # are executed locally.
+    #
+    # Examples:
+    # open Chrome
+    # create folder Aastha on desktop
+    # create file test.txt on desktop
     # ==========================================
 
-    try:
+    local_result = local_route(command)
 
-        result = understand(command)
+    if local_result:
 
-    except Exception as e:
+        print("LOCAL ROUTER RESULT:", local_result)
 
-        print("BRAIN ERROR:", e)
+        result = local_result
 
-        return f"I couldn't understand the command: {e}"
+    else:
+
+        # ==========================================
+        # STEP 2: GEMINI
+        # ==========================================
+        # Used for AI/code commands that the local
+        # router cannot handle.
+        # ==========================================
+
+        try:
+
+            result = understand(command)
+
+        except Exception as e:
+
+            print("BRAIN ERROR:", e)
+
+            return f"I couldn't understand the command: {e}"
+
+
+    # ==========================================
+    # SHOW BRAIN RESULT
+    # ==========================================
 
     print("BRAIN RESULT:", result)
 
+
     # ==========================================
-    # STEP 2: MAKE SURE RESULT IS DICTIONARY
+    # VALIDATE RESULT
     # ==========================================
 
     if not isinstance(result, dict):
 
-        return str(result)
+        return "I couldn't understand the command."
+
 
     action = result.get("action")
 
     print("ACTION:", action)
+
+
+    # ==========================================
+    # GEMINI / AI ERROR
+    # ==========================================
+
+    if action == "error":
+
+        message = result.get(
+            "message",
+            "Unknown AI error."
+        )
+
+        if (
+            "429" in message
+            or "RESOURCE_EXHAUSTED" in message
+            or "quota" in message.lower()
+        ):
+
+            return (
+                "Gemini API quota has been exhausted. "
+                "Local Zivo commands will still work, "
+                "but AI commands require available Gemini quota."
+            )
+
+        return (
+            f"Zivo encountered an AI error: {message}"
+        )
+
+
+    # ==========================================
+    # GENERATE AND RUN CODE
+    # ==========================================
+
+    if action == "generate_code":
+
+        language = result.get("language")
+        task = result.get("task")
+
+
+        if not language:
+
+            return (
+                "I don't know which programming "
+                "language to use."
+            )
+
+
+        if not task:
+
+            return (
+                "I don't know what code "
+                "you want me to create."
+            )
+
+
+        print("LANGUAGE:", language)
+        print("TASK:", task)
+
+
+        # ======================================
+        # GENERATE CODE
+        # ======================================
+
+        try:
+
+            code = generate_code(
+                task,
+                language
+            )
+
+        except Exception as e:
+
+            print(
+                "CODE GENERATION ERROR:",
+                e
+            )
+
+            return (
+                f"Could not generate code: {e}"
+            )
+
+
+        print("\nGENERATED CODE:")
+        print("----------------")
+        print(code)
+        print("----------------")
+
+
+        # ======================================
+        # PYTHON
+        # ======================================
+
+        if language.lower() in [
+            "python",
+            "python3"
+        ]:
+
+            try:
+
+                execution = run_python_code(
+                    code
+                )
+
+            except Exception as e:
+
+                print(
+                    "CODE EXECUTION ERROR:",
+                    e
+                )
+
+                return (
+                    f"Generated Python Code:\n\n"
+                    f"{code}\n\n"
+                    f"Execution Error:\n{e}"
+                )
+
+
+            # ----------------------------------
+            # SUCCESS
+            # ----------------------------------
+
+            if execution["success"]:
+
+                output = (
+                    execution["output"]
+                    .strip()
+                )
+
+                return (
+                    f"Generated Python Code:\n\n"
+                    f"{code}\n\n"
+                    f"Output:\n"
+                    f"{output}"
+                )
+
+
+            # ----------------------------------
+            # EXECUTION ERROR
+            # ----------------------------------
+
+            return (
+                f"Generated Python Code:\n\n"
+                f"{code}\n\n"
+                f"Execution Error:\n"
+                f"{execution['output']}"
+            )
+
+
+        # ======================================
+        # OTHER LANGUAGES
+        # ======================================
+
+        return (
+            f"Generated {language} code:\n\n"
+            f"{code}"
+        )
+
 
     # ==========================================
     # OPEN APPLICATION
@@ -79,6 +273,7 @@ def handle_command(command: str):
     if action == "open_application":
 
         app = result.get("app")
+
 
         # --------------------------------------
         # FALLBACK
@@ -90,15 +285,18 @@ def handle_command(command: str):
                 "Gemini did not provide app name."
             )
 
-            app = extract_application(command)
+            app = extract_application(
+                command
+            )
 
             print(
                 "FALLBACK APP:",
                 app
             )
 
+
         # --------------------------------------
-        # STILL NO APP
+        # NO APP
         # --------------------------------------
 
         if not app:
@@ -109,13 +307,18 @@ def handle_command(command: str):
                 "but I don't know which one."
             )
 
+
         print(
-            f"EXECUTING: open_application({app})"
+            f"EXECUTING: "
+            f"open_application({app})"
         )
+
 
         try:
 
-            tool_result = open_application(app)
+            tool_result = open_application(
+                app
+            )
 
             print(
                 "APP TOOL RESULT:",
@@ -135,18 +338,22 @@ def handle_command(command: str):
                 f"Could not open {app}: {e}"
             )
 
+
     # ==========================================
     # CREATE FILE
     # ==========================================
 
     if action == "create_file":
 
-        filename = result.get("filename")
+        filename = result.get(
+            "filename"
+        )
 
         location = result.get(
             "location",
             "desktop"
         )
+
 
         if not filename:
 
@@ -155,10 +362,12 @@ def handle_command(command: str):
                 "of the file to create."
             )
 
+
         print(
             f"EXECUTING: create_file("
             f"{filename}, {location})"
         )
+
 
         try:
 
@@ -181,7 +390,10 @@ def handle_command(command: str):
                 e
             )
 
-            return f"Error creating file: {e}"
+            return (
+                f"Error creating file: {e}"
+            )
+
 
     # ==========================================
     # CREATE FOLDER
@@ -198,6 +410,7 @@ def handle_command(command: str):
             "desktop"
         )
 
+
         if not folder_name:
 
             return (
@@ -205,10 +418,12 @@ def handle_command(command: str):
                 "of the folder to create."
             )
 
+
         print(
             f"EXECUTING: create_folder("
             f"{folder_name}, {location})"
         )
+
 
         try:
 
@@ -231,7 +446,23 @@ def handle_command(command: str):
                 e
             )
 
-            return f"Error creating folder: {e}"
+            return (
+                f"Error creating folder: {e}"
+            )
+
+
+    # ==========================================
+    # UNSUPPORTED
+    # ==========================================
+
+    if action == "unsupported":
+
+        return (
+            "I understood your command, "
+            "but I don't know how to execute "
+            "it yet."
+        )
+
 
     # ==========================================
     # UNKNOWN ACTION
