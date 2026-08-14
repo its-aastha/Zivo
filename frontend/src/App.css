@@ -496,9 +496,10 @@ button {
 
   bottom: 55px;
 
-  max-width: 700px;
+  width: min(90%, 850px);
+  max-width: 850px;
 
-  text-align: center;
+  text-align: left;
 
   padding: 8px 18px;
 
@@ -511,15 +512,128 @@ button {
   animation: responseAppear 0.3s ease;
 }
 
+.response-text {
+  text-align: center;
+  line-height: 1.6;
+}
+
+/* =====================================
+   CODE CARD
+===================================== */
+
+.code-card {
+  width: 100%;
+  max-width: 850px;
+
+  margin: 14px 0;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  border-radius: 14px;
+
+  overflow: hidden;
+
+  background: #0d1117;
+
+  box-shadow:
+    0 8px 30px rgba(0, 0, 0, 0.25);
+}
+
+.code-card-header {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  padding: 10px 14px;
+
+  background: #161b22;
+
+  border-bottom:
+    1px solid rgba(255, 255, 255, 0.1);
+}
+
+.code-language {
+  font-size: 12px;
+
+  font-weight: 600;
+
+  letter-spacing: 0.8px;
+
+  color: #a8b3cf;
+}
+
+.copy-button {
+  border:
+    1px solid rgba(255, 255, 255, 0.15);
+
+  background:
+    rgba(255, 255, 255, 0.06);
+
+  color: #e6edf3;
+
+  padding: 5px 11px;
+
+  border-radius: 7px;
+
+  font-size: 12px;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.copy-button:hover {
+  background:
+    rgba(255, 255, 255, 0.12);
+}
+
+.code-content {
+  margin: 0;
+
+  padding: 18px;
+
+  overflow-x: auto;
+
+  font-family:
+    "Fira Code",
+    "Cascadia Code",
+    Consolas,
+    monospace;
+
+  font-size: 14px;
+
+  line-height: 1.7;
+
+  color: #e6edf3;
+
+  white-space: pre;
+
+  text-align: left;
+}
+
+.code-content code {
+  font-family: inherit;
+}
+
+/* =====================================
+   RESPONSE ANIMATION
+===================================== */
+
 @keyframes responseAppear {
   from {
     opacity: 0;
-    transform: translateY(8px);
+
+    transform:
+      translateY(8px);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0);
+
+    transform:
+      translateY(0);
   }
 }
 
@@ -551,6 +665,7 @@ footer {
 
   .zivo-logo {
     top: 30px;
+
     font-size: 38px;
   }
 
@@ -588,8 +703,35 @@ footer {
     bottom: 80px;
   }
 
+  .zivo-response {
+    width: 94%;
+
+    max-width: 94%;
+
+    bottom: 48px;
+
+    padding: 6px 8px;
+  }
+
+  .code-card {
+    max-width: 100%;
+
+    margin: 10px 0;
+
+    border-radius: 12px;
+  }
+
+  .code-content {
+    padding: 14px;
+
+    font-size: 13px;
+
+    line-height: 1.6;
+  }
+
   footer {
     font-size: 10px;
+
     white-space: nowrap;
   }
 }

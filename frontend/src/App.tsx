@@ -95,6 +95,53 @@ function App() {
     }
   };
 
+  // Render normal responses and code responses separately
+  const renderResponse = (text: string) => {
+    const codeMatch = text.match(
+      /```(\w+)?\s*([\s\S]*?)```/
+    );
+
+    if (codeMatch) {
+      const language = codeMatch[1] || "code";
+      const code = codeMatch[2].trim();
+
+      const copyCode = async () => {
+        try {
+          await navigator.clipboard.writeText(code);
+        } catch (error) {
+          console.error("COPY ERROR:", error);
+        }
+      };
+
+      return (
+        <div className="code-card">
+          <div className="code-header">
+            <span className="code-language">
+              {language.toUpperCase()}
+            </span>
+
+            <button
+              className="copy-button"
+              onClick={copyCode}
+            >
+              Copy
+            </button>
+          </div>
+
+          <pre className="code-content">
+            <code>{code}</code>
+          </pre>
+        </div>
+      );
+    }
+
+    return (
+      <div className="response-text">
+        {text}
+      </div>
+    );
+  };
+
   return (
     <div className="zivo-app">
 
@@ -170,7 +217,7 @@ function App() {
         {/* RESPONSE */}
         {response && (
           <div className="zivo-response">
-            {response}
+            {renderResponse(response)}
           </div>
         )}
 
