@@ -3,7 +3,10 @@ from agent.local_router import local_route
 
 from tools.app_tools import open_application
 from tools.file_tools import create_file, create_folder
-from tools.code_tools import run_python_code
+from tools.code_tools import (
+    run_python_code,
+    create_code_file
+)
 
 
 # ==========================================
@@ -51,20 +54,15 @@ def handle_command(command: str):
     # ==========================================
     # STEP 1: LOCAL ROUTER
     # ==========================================
-    # Commands that can be handled without Gemini
-    # are executed locally.
-    #
-    # Examples:
-    # open Chrome
-    # create folder Aastha on desktop
-    # create file test.txt on desktop
-    # ==========================================
 
     local_result = local_route(command)
 
     if local_result:
 
-        print("LOCAL ROUTER RESULT:", local_result)
+        print(
+            "LOCAL ROUTER RESULT:",
+            local_result
+        )
 
         result = local_result
 
@@ -73,9 +71,6 @@ def handle_command(command: str):
         # ==========================================
         # STEP 2: GEMINI
         # ==========================================
-        # Used for AI/code commands that the local
-        # router cannot handle.
-        # ==========================================
 
         try:
 
@@ -83,16 +78,25 @@ def handle_command(command: str):
 
         except Exception as e:
 
-            print("BRAIN ERROR:", e)
+            print(
+                "BRAIN ERROR:",
+                e
+            )
 
-            return f"I couldn't understand the command: {e}"
+            return (
+                f"I couldn't understand "
+                f"the command: {e}"
+            )
 
 
     # ==========================================
     # SHOW BRAIN RESULT
     # ==========================================
 
-    print("BRAIN RESULT:", result)
+    print(
+        "BRAIN RESULT:",
+        result
+    )
 
 
     # ==========================================
@@ -106,7 +110,10 @@ def handle_command(command: str):
 
     action = result.get("action")
 
-    print("ACTION:", action)
+    print(
+        "ACTION:",
+        action
+    )
 
 
     # ==========================================
@@ -133,12 +140,13 @@ def handle_command(command: str):
             )
 
         return (
-            f"Zivo encountered an AI error: {message}"
+            f"Zivo encountered an AI error: "
+            f"{message}"
         )
 
 
     # ==========================================
-    # GENERATE AND RUN CODE
+    # GENERATE CODE
     # ==========================================
 
     if action == "generate_code":
@@ -147,24 +155,45 @@ def handle_command(command: str):
         task = result.get("task")
 
 
+        # --------------------------------------
+        # VALIDATE LANGUAGE
+        # --------------------------------------
+
         if not language:
 
-            return (
-                "I don't know which programming "
-                "language to use."
-            )
+            return {
+                "type": "error",
+                "message": (
+                    "I don't know which "
+                    "programming language to use."
+                )
+            }
 
+
+        # --------------------------------------
+        # VALIDATE TASK
+        # --------------------------------------
 
         if not task:
 
-            return (
-                "I don't know what code "
-                "you want me to create."
-            )
+            return {
+                "type": "error",
+                "message": (
+                    "I don't know what code "
+                    "you want me to create."
+                )
+            }
 
 
-        print("LANGUAGE:", language)
-        print("TASK:", task)
+        print(
+            "LANGUAGE:",
+            language
+        )
+
+        print(
+            "TASK:",
+            task
+        )
 
 
         # ======================================
@@ -185,9 +214,12 @@ def handle_command(command: str):
                 e
             )
 
-            return (
-                f"Could not generate code: {e}"
-            )
+            return {
+                "type": "error",
+                "message": (
+                    f"Could not generate code: {e}"
+                )
+            }
 
 
         print("\nGENERATED CODE:")
@@ -218,11 +250,15 @@ def handle_command(command: str):
                     e
                 )
 
-                return (
-                    f"Generated Python Code:\n\n"
-                    f"{code}\n\n"
-                    f"Execution Error:\n{e}"
-                )
+                return {
+                    "type": "code",
+                    "language": "python",
+                    "code": code,
+                    "filename": "generated.py",
+                    "file_id": None,
+                    "success": False,
+                    "output": str(e)
+                }
 
 
             # ----------------------------------
@@ -232,38 +268,82 @@ def handle_command(command: str):
             if execution["success"]:
 
                 output = (
-                    execution["output"]
+                    execution.get(
+                        "output",
+                        ""
+                    )
                     .strip()
                 )
 
-                return (
-                    f"Generated Python Code:\n\n"
-                    f"{code}\n\n"
-                    f"Output:\n"
-                    f"{output}"
-                )
+                return {
+                    "type": "code",
+                    "language": "python",
+                    "filename": execution.get(
+                        "filename"
+                    ),
+                    "file_id": execution.get(
+                        "file_id"
+                    ),
+                    "success": True,
+                    "output": output
+                }
 
 
             # ----------------------------------
             # EXECUTION ERROR
             # ----------------------------------
 
-            return (
-                f"Generated Python Code:\n\n"
-                f"{code}\n\n"
-                f"Execution Error:\n"
-                f"{execution['output']}"
-            )
+            return {
+                "type": "code",
+                "language": "python",
+                "filename": execution.get(
+                    "filename"
+                ),
+                "file_id": execution.get(
+                    "file_id"
+                ),
+                "success": False,
+                "output": execution.get(
+                    "output",
+                    "Unknown execution error."
+                )
+            }
 
 
         # ======================================
         # OTHER LANGUAGES
         # ======================================
 
-        return (
-            f"Generated {language} code:\n\n"
-            f"{code}"
-        )
+        try:
+
+            file_info = create_code_file(
+                code=code,
+                language=language
+            )
+
+        except Exception as e:
+
+            print(
+                "CODE FILE ERROR:",
+                e
+            )
+
+            return {
+                "type": "error",
+                "message": (
+                    f"Could not create code file: {e}"
+                )
+            }
+
+
+        return {
+            "type": "code",
+            "language": language,
+            "filename": file_info["filename"],
+            "file_id": file_info["file_id"],
+            "success": True,
+            "output": ""
+        }
 
 
     # ==========================================
