@@ -167,3 +167,11 @@ def download_generated_code(
         filename=file_info["filename"],
         media_type="application/octet-stream"
     )
+
+# How to run the project :
+#.venv\Scripts\activate 
+#cd backend
+#uvicorn main:app --reload
+
+#cd frontend
+#npm run dev
