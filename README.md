@@ -50,6 +50,7 @@ The app will prompt for a command and print the parsed Gemini output before exec
 ## Examples
 
 - `Open Chrome`
+- `Launch chrome`
 - `Create app.py on desktop`
 - `Create Project folder in documents`
 
