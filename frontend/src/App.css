@@ -22,7 +22,6 @@ button {
 .zivo-app {
   min-height: 100vh;
   width: 100%;
-
   position: relative;
   overflow: hidden;
 
@@ -51,24 +50,16 @@ button {
 
 .zivo-logo {
   position: absolute;
-
   top: 48px;
   left: 50%;
-
   transform: translateX(-50%);
 
-  font-family:
-    "Courier New",
-    Courier,
-    monospace;
-
+  font-family: "Courier New", Courier, monospace;
   font-size: 48px;
   font-weight: 700;
-
   letter-spacing: 7px;
 
   color: #f4f4f4;
-
   text-transform: lowercase;
 
   text-shadow:
@@ -79,22 +70,13 @@ button {
 
 .cursor {
   margin-left: 4px;
-
   color: #ffffff;
-
   animation: cursorBlink 0.9s infinite;
 }
 
 @keyframes cursorBlink {
-  0%,
-  45% {
-    opacity: 1;
-  }
-
-  46%,
-  100% {
-    opacity: 0;
-  }
+  0%, 45% { opacity: 1; }
+  46%, 100% { opacity: 0; }
 }
 
 /* =====================================
@@ -107,11 +89,9 @@ button {
 
   display: flex;
   flex-direction: column;
-
   align-items: center;
 
   position: relative;
-
   padding-top: 135px;
 }
 
@@ -121,13 +101,9 @@ button {
 
 .hero-title {
   font-size: clamp(30px, 3vw, 45px);
-
   font-weight: 400;
-
   letter-spacing: -1px;
-
   color: #f4f7ff;
-
   z-index: 5;
 }
 
@@ -142,7 +118,6 @@ button {
 
   -webkit-background-clip: text;
   background-clip: text;
-
   color: transparent;
 }
 
@@ -157,7 +132,6 @@ button {
   position: relative;
 
   display: flex;
-
   align-items: center;
   justify-content: center;
 
@@ -178,12 +152,10 @@ button {
   z-index: 10;
 
   display: flex;
-
   align-items: center;
   justify-content: center;
 
   cursor: pointer;
-
   color: #62eeff;
 
   background:
@@ -214,15 +186,6 @@ button {
 
 .mic-button:disabled {
   cursor: default;
-}
-
-.mic-icon {
-  width: 62px;
-  height: 62px;
-
-  filter:
-    drop-shadow(0 0 8px #00eaff)
-    drop-shadow(0 0 18px rgba(0, 234, 255, 0.6));
 }
 
 /* =====================================
@@ -266,13 +229,10 @@ button {
   height: 150px;
 
   top: 50%;
-
   transform: translateY(-50%);
 
   border-radius: 50%;
-
   pointer-events: none;
-
   z-index: 2;
 }
 
@@ -314,86 +274,50 @@ button {
 
 @keyframes waveLeft {
   0% {
-    transform:
-      translateY(-50%)
-      scaleY(0.3)
-      rotate(0deg);
-
+    transform: translateY(-50%) scaleY(0.3) rotate(0deg);
     opacity: 0.35;
   }
 
   25% {
-    transform:
-      translateY(-50%)
-      scaleY(1.2)
-      rotate(-4deg);
-
+    transform: translateY(-50%) scaleY(1.2) rotate(-4deg);
     opacity: 1;
   }
 
   50% {
-    transform:
-      translateY(-50%)
-      scaleY(0.55)
-      rotate(3deg);
+    transform: translateY(-50%) scaleY(0.55) rotate(3deg);
   }
 
   75% {
-    transform:
-      translateY(-50%)
-      scaleY(1.05)
-      rotate(-2deg);
+    transform: translateY(-50%) scaleY(1.05) rotate(-2deg);
   }
 
   100% {
-    transform:
-      translateY(-50%)
-      scaleY(0.3)
-      rotate(0deg);
-
+    transform: translateY(-50%) scaleY(0.3) rotate(0deg);
     opacity: 0.35;
   }
 }
 
 @keyframes waveRight {
   0% {
-    transform:
-      translateY(-50%)
-      scaleY(0.3)
-      rotate(0deg);
-
+    transform: translateY(-50%) scaleY(0.3) rotate(0deg);
     opacity: 0.35;
   }
 
   25% {
-    transform:
-      translateY(-50%)
-      scaleY(1.15)
-      rotate(4deg);
-
+    transform: translateY(-50%) scaleY(1.15) rotate(4deg);
     opacity: 1;
   }
 
   50% {
-    transform:
-      translateY(-50%)
-      scaleY(0.5)
-      rotate(-3deg);
+    transform: translateY(-50%) scaleY(0.5) rotate(-3deg);
   }
 
   75% {
-    transform:
-      translateY(-50%)
-      scaleY(1.1)
-      rotate(2deg);
+    transform: translateY(-50%) scaleY(1.1) rotate(2deg);
   }
 
   100% {
-    transform:
-      translateY(-50%)
-      scaleY(0.3)
-      rotate(0deg);
-
+    transform: translateY(-50%) scaleY(0.3) rotate(0deg);
     opacity: 0.35;
   }
 }
@@ -439,7 +363,6 @@ button {
     50px 50px;
 
   opacity: 0.55;
-
   filter: blur(0.2px);
 
   animation:
@@ -450,15 +373,11 @@ button {
 
 @keyframes particleRotate {
   from {
-    transform:
-      rotate(0deg)
-      scale(0.85);
+    transform: rotate(0deg) scale(0.85);
   }
 
   to {
-    transform:
-      rotate(360deg)
-      scale(1.08);
+    transform: rotate(360deg) scale(1.08);
   }
 }
 
@@ -472,16 +391,23 @@ button {
   bottom: 105px;
 
   font-size: 18px;
-
   color: #8996ad;
 
   letter-spacing: 0.3px;
 
   z-index: 15;
+
+  transition:
+    color 0.25s ease,
+    text-shadow 0.25s ease;
 }
 
-.is-listening + .voice-status {
+.voice-area.is-listening ~ .voice-status {
   color: #62eaff;
+}
+
+.voice-status.active {
+  color: #ff63d5;
 }
 
 /* =====================================
@@ -494,7 +420,6 @@ button {
   bottom: 55px;
 
   width: min(90%, 850px);
-
   max-width: 850px;
 
   text-align: left;
@@ -502,7 +427,6 @@ button {
   padding: 8px 18px;
 
   font-size: 16px;
-
   color: #e8ecf5;
 
   z-index: 20;
@@ -513,23 +437,18 @@ button {
 
 .response-text {
   text-align: center;
-
   line-height: 1.6;
 }
 
 @keyframes responseAppear {
   from {
     opacity: 0;
-
-    transform:
-      translateY(8px);
+    transform: translateY(8px);
   }
 
   to {
     opacity: 1;
-
-    transform:
-      translateY(0);
+    transform: translateY(0);
   }
 }
 
@@ -539,9 +458,7 @@ button {
 
 .code-file-card {
   width: 100%;
-
   max-width: 850px;
-
   padding: 18px;
 
   border-radius: 16px;
@@ -565,11 +482,8 @@ button {
 
 .code-file-header {
   display: flex;
-
   align-items: center;
-
   justify-content: space-between;
-
   gap: 15px;
 
   padding-bottom: 14px;
@@ -584,11 +498,8 @@ button {
 
 .code-file-language {
   font-size: 11px;
-
   font-weight: 700;
-
   letter-spacing: 1.5px;
-
   color: #62eeff;
 }
 
@@ -602,13 +513,10 @@ button {
     monospace;
 
   font-size: 15px;
-
   color: #f2f5ff;
 
   overflow: hidden;
-
   text-overflow: ellipsis;
-
   white-space: nowrap;
 }
 
@@ -616,9 +524,7 @@ button {
   flex-shrink: 0;
 
   font-size: 12px;
-
   padding: 5px 10px;
-
   border-radius: 20px;
 }
 
@@ -663,17 +569,13 @@ button {
     monospace;
 
   overflow-x: auto;
-
   white-space: pre-wrap;
 }
 
 .code-file-actions {
   display: flex;
-
   justify-content: flex-end;
-
   gap: 10px;
-
   margin-top: 16px;
 }
 
@@ -682,11 +584,9 @@ button {
   padding: 8px 14px;
 
   border-radius: 8px;
-
   cursor: pointer;
 
   font-size: 12px;
-
   font-weight: 600;
 
   transition:
@@ -737,15 +637,11 @@ button {
 
 .code-modal-overlay {
   position: fixed;
-
   inset: 0;
-
   z-index: 100;
 
   display: flex;
-
   align-items: center;
-
   justify-content: center;
 
   padding: 30px;
@@ -758,11 +654,9 @@ button {
 
 .code-modal {
   width: min(900px, 95vw);
-
   max-height: 85vh;
 
   display: flex;
-
   flex-direction: column;
 
   overflow: hidden;
@@ -780,9 +674,7 @@ button {
 
 .code-modal-header {
   display: flex;
-
   align-items: center;
-
   justify-content: space-between;
 
   padding: 13px 16px;
@@ -801,23 +693,18 @@ button {
     monospace;
 
   font-size: 13px;
-
   color: #e6edf3;
 
   overflow: hidden;
-
   text-overflow: ellipsis;
-
   white-space: nowrap;
 }
 
 .code-close-button {
   width: 30px;
-
   height: 30px;
 
   border: none;
-
   border-radius: 7px;
 
   background:
@@ -826,7 +713,6 @@ button {
   color: #ffffff;
 
   font-size: 20px;
-
   cursor: pointer;
 
   flex-shrink: 0;
@@ -839,11 +725,9 @@ button {
 
 .code-modal-content {
   margin: 0;
-
   padding: 22px;
 
   overflow: auto;
-
   flex: 1;
 
   color: #e6edf3;
@@ -855,11 +739,9 @@ button {
     monospace;
 
   font-size: 14px;
-
   line-height: 1.7;
 
   text-align: left;
-
   white-space: pre;
 }
 
@@ -869,9 +751,7 @@ button {
 
 .code-modal-footer {
   display: flex;
-
   justify-content: flex-end;
-
   gap: 10px;
 
   padding: 12px 16px;
@@ -887,11 +767,9 @@ button {
   padding: 8px 14px;
 
   border-radius: 8px;
-
   cursor: pointer;
 
   font-size: 12px;
-
   font-weight: 600;
 
   transition:
@@ -925,7 +803,6 @@ button {
 .code-modal-copy:hover,
 .code-modal-download:hover {
   transform: translateY(-1px);
-
   opacity: 0.92;
 }
 
@@ -937,7 +814,6 @@ footer {
   position: absolute;
 
   bottom: 22px;
-
   left: 50%;
 
   transform: translateX(-50%);
@@ -945,7 +821,6 @@ footer {
   color: #4f5b72;
 
   font-size: 13px;
-
   letter-spacing: 2px;
 }
 
@@ -954,10 +829,8 @@ footer {
 ===================================== */
 
 @media (max-width: 768px) {
-
   .zivo-logo {
     top: 30px;
-
     font-size: 38px;
   }
 
@@ -967,9 +840,7 @@ footer {
 
   .hero-title {
     font-size: 28px;
-
     text-align: center;
-
     padding: 0 20px;
   }
 
@@ -997,19 +868,14 @@ footer {
 
   .zivo-response {
     width: 94%;
-
     max-width: 94%;
-
     bottom: 48px;
-
     padding: 6px 8px;
   }
 
   .code-file-card {
     max-width: 100%;
-
     padding: 14px;
-
     border-radius: 12px;
   }
 
@@ -1036,13 +902,11 @@ footer {
 
   .code-modal {
     width: 100%;
-
     max-height: 90vh;
   }
 
   .code-modal-content {
     padding: 15px;
-
     font-size: 12px;
   }
 
@@ -1052,7 +916,6 @@ footer {
 
   footer {
     font-size: 10px;
-
     white-space: nowrap;
   }
 }

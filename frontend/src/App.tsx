@@ -14,6 +14,7 @@ interface CodeResponse {
 function App() {
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isZivoActive, setIsZivoActive] = useState(false);
 
   const [response, setResponse] = useState<string | CodeResponse>("");
 
@@ -39,7 +40,6 @@ function App() {
 
       const result = data.response;
 
-      // Code response from backend
       if (
         result &&
         typeof result === "object" &&
@@ -47,7 +47,6 @@ function App() {
       ) {
         setResponse(result as CodeResponse);
       } else {
-        // Normal text response
         setResponse(
           typeof result === "string"
             ? result
@@ -56,7 +55,6 @@ function App() {
       }
     } catch (error) {
       console.error("ZIVO ERROR:", error);
-
       setResponse("I couldn't connect to ZIVO.");
     } finally {
       setIsProcessing(false);
@@ -77,26 +75,16 @@ function App() {
       );
 
       if (!result.ok) {
-        throw new Error(
-          "Could not load generated code."
-        );
+        throw new Error("Could not load generated code.");
       }
 
       const data = await result.json();
 
       setOpenedCode(data.code);
-      setOpenedFilename(
-        data.filename || filename
-      );
+      setOpenedFilename(data.filename || filename);
     } catch (error) {
-      console.error(
-        "OPEN CODE ERROR:",
-        error
-      );
-
-      alert(
-        "Could not open the generated code."
-      );
+      console.error("OPEN CODE ERROR:", error);
+      alert("Could not open the generated code.");
     }
   };
 
@@ -108,16 +96,13 @@ function App() {
     const downloadUrl =
       `http://127.0.0.1:8000/code/${fileId}/download`;
 
-    const link =
-      document.createElement("a");
+    const link = document.createElement("a");
 
     link.href = downloadUrl;
     link.setAttribute("download", "");
 
     document.body.appendChild(link);
-
     link.click();
-
     document.body.removeChild(link);
   };
 
@@ -131,7 +116,7 @@ function App() {
   };
 
   // ==========================================
-  // START LISTENING
+  // START WAKE-WORD LISTENING
   // ==========================================
 
   const startListening = () => {
@@ -143,56 +128,68 @@ function App() {
       setResponse(
         "Speech recognition is not supported. Please use Google Chrome."
       );
-
       return;
     }
 
-    const recognition =
-      new SpeechRecognition();
+    // Stop an existing recognition session first.
+    recognitionRef.current?.stop();
+
+    const recognition = new SpeechRecognition();
 
     recognition.lang = "en-US";
-    recognition.continuous = false;
+
+    // Keep listening because we are waiting for "OK Zivo".
+    recognition.continuous = true;
     recognition.interimResults = false;
 
-    recognitionRef.current =
-      recognition;
+    recognitionRef.current = recognition;
 
     recognition.onstart = () => {
       setIsListening(true);
       setResponse("");
     };
 
-    recognition.onresult = async (
-      event: any
-    ) => {
-      const command =
-        event.results[0][0].transcript;
+    recognition.onresult = (event: any) => {
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (!event.results[i].isFinal) continue;
 
-      console.log(
-        "USER SAID:",
-        command
-      );
+        const spokenText = event.results[i][0].transcript
+          .trim()
+          .toLowerCase();
 
-      setIsListening(false);
+        console.log("WAKE LISTENER HEARD:", spokenText);
 
-      await handleCommand(command);
+        // ========================================
+        // PHASE 1 WAKE WORD
+        // ========================================
+
+        const wakeWordDetected =
+          spokenText.includes("buddy") ||
+          spokenText.includes("buddie") ||
+          spokenText.includes("budi");
+
+        if (wakeWordDetected) {
+          console.log("ZIVO WAKE WORD DETECTED");
+
+          setIsZivoActive(true);
+          setIsListening(false);
+
+          recognition.stop();
+
+          setResponse("Yes, I’m awake. What can I do for you?");
+          return;
+        }
+      }
     };
 
-    recognition.onerror = (
-      event: any
-    ) => {
-      console.error(
-        "Speech error:",
-        event.error
-      );
+    recognition.onerror = (event: any) => {
+      console.error("Speech error:", event.error);
 
       setIsListening(false);
 
-      if (
-        event.error === "not-allowed"
-      ) {
+      if (event.error === "not-allowed") {
         setResponse(
-          "Please allow microphone access."
+          "Please allow microphone access for ZIVO."
         );
       }
     };
@@ -201,17 +198,35 @@ function App() {
       setIsListening(false);
     };
 
-    recognition.start();
+    try {
+      recognition.start();
+    } catch (error) {
+      console.error("START LISTENING ERROR:", error);
+    }
   };
 
   // ==========================================
-  // STOP LISTENING
+  // STOP WAKE-WORD LISTENING
   // ==========================================
 
   const stopListening = () => {
     recognitionRef.current?.stop();
 
     setIsListening(false);
+    setIsZivoActive(false);
+    setResponse("ZIVO is sleeping.");
+  };
+
+  // ==========================================
+  // PUT ZIVO BACK TO SLEEP
+  // ==========================================
+
+  const sleepZivo = () => {
+    recognitionRef.current?.stop();
+
+    setIsListening(false);
+    setIsZivoActive(false);
+    setResponse("ZIVO is sleeping.");
   };
 
   // ==========================================
@@ -219,8 +234,8 @@ function App() {
   // ==========================================
 
   const toggleListening = () => {
-    if (isListening) {
-      stopListening();
+    if (isZivoActive || isListening) {
+      sleepZivo();
     } else {
       startListening();
     }
@@ -231,23 +246,14 @@ function App() {
   // ==========================================
 
   const renderResponse = () => {
-    // ========================================
-    // CODE FILE CARD
-    // ========================================
-
     if (
       typeof response === "object" &&
       response.type === "code"
     ) {
       return (
         <div className="code-file-card">
-
-          {/* HEADER */}
-
           <div className="code-file-header">
-
             <div className="code-file-info">
-
               <div className="code-file-language">
                 {response.language.toUpperCase()}
               </div>
@@ -255,7 +261,6 @@ function App() {
               <div className="code-file-name">
                 {response.filename}
               </div>
-
             </div>
 
             <div
@@ -265,33 +270,19 @@ function App() {
                   : "code-status code-error"
               }
             >
-              {response.success
-                ? "Ready"
-                : "Error"}
+              {response.success ? "Ready" : "Error"}
             </div>
-
           </div>
-
-          {/* OUTPUT */}
 
           <div className="code-file-output">
-
             {response.success
-              ? `Output: ${
-                  response.output ||
-                  "No output"
-                }`
+              ? `Output: ${response.output || "No output"}`
               : `Execution Error: ${
-                  response.output ||
-                  "Unknown error"
+                  response.output || "Unknown error"
                 }`}
-
           </div>
 
-          {/* ACTION BUTTONS */}
-
           <div className="code-file-actions">
-
             <button
               className="code-open-button"
               onClick={() =>
@@ -307,23 +298,15 @@ function App() {
             <button
               className="code-download-button"
               onClick={() =>
-                downloadCode(
-                  response.file_id
-                )
+                downloadCode(response.file_id)
               }
             >
               Download
             </button>
-
           </div>
-
         </div>
       );
     }
-
-    // ========================================
-    // NORMAL TEXT RESPONSE
-    // ========================================
 
     return (
       <div className="response-text">
@@ -338,52 +321,34 @@ function App() {
 
   return (
     <div className="zivo-app">
-
-      {/* ZIVO LOGO */}
-
       <div className="zivo-logo">
         zivo
-        <span className="cursor">
-          |
-        </span>
+        <span className="cursor">|</span>
       </div>
 
-      {/* MAIN */}
-
       <main className="zivo-main">
-
         <h1 className="hero-title">
-          Hi! How can{" "}
-          <span>I help you?</span>
+          Hi! How can <span>I help you?</span>
         </h1>
-
-        {/* VOICE AREA */}
 
         <div
           className={`voice-area ${
-            isListening
+            isListening || isZivoActive
               ? "is-listening"
               : ""
           }`}
         >
-
-          {/* WAVE ANIMATION */}
-
-          {isListening && (
+          {(isListening || isZivoActive) && (
             <>
               <div className="wave wave-left"></div>
-
               <div className="wave wave-right"></div>
-
               <div className="voice-particles"></div>
             </>
           )}
 
-          {/* MICROPHONE */}
-
           <button
             className={`mic-button ${
-              isListening
+              isListening || isZivoActive
                 ? "mic-active"
                 : ""
             }`}
@@ -391,7 +356,6 @@ function App() {
             disabled={isProcessing}
             aria-label="Voice assistant"
           >
-
             <svg
               viewBox="0 0 24 24"
               className="mic-icon"
@@ -399,7 +363,6 @@ function App() {
               stroke="currentColor"
               strokeWidth="1.8"
             >
-
               <rect
                 x="8"
                 y="3"
@@ -409,50 +372,33 @@ function App() {
               />
 
               <path d="M5 11a7 7 0 0 0 14 0" />
-
               <path d="M12 18v3" />
-
               <path d="M8 21h8" />
-
             </svg>
-
           </button>
-
         </div>
-
-        {/* STATUS */}
 
         <div className="voice-status">
-
-          {isListening
-            ? "Listening..."
+          {isZivoActive
+            ? "ZIVO is active"
+            : isListening
+            ? 'Listening for "Buddy"...'
             : isProcessing
             ? "ZIVO is thinking..."
-            : "Click to start listening"}
-
+            : 'Click the mic and say "Buddy"'}
         </div>
-
-        {/* RESPONSE */}
 
         {response && (
           <div className="zivo-response">
             {renderResponse()}
           </div>
         )}
-
       </main>
-
-      {/* CODE VIEWER MODAL */}
 
       {openedCode && (
         <div className="code-modal-overlay">
-
           <div className="code-modal">
-
-            {/* MODAL HEADER */}
-
             <div className="code-modal-header">
-
               <div className="code-modal-title">
                 {openedFilename}
               </div>
@@ -464,21 +410,13 @@ function App() {
               >
                 ×
               </button>
-
             </div>
 
-            {/* CODE */}
-
             <pre className="code-modal-content">
-              <code>
-                {openedCode}
-              </code>
+              <code>{openedCode}</code>
             </pre>
 
-            {/* MODAL FOOTER */}
-
             <div className="code-modal-footer">
-
               <button
                 className="code-modal-copy"
                 onClick={() =>
@@ -493,62 +431,37 @@ function App() {
               <button
                 className="code-modal-download"
                 onClick={() => {
-
-                  const codeBlob =
-                    new Blob(
-                      [openedCode],
-                      {
-                        type:
-                          "text/plain"
-                      }
-                    );
+                  const codeBlob = new Blob(
+                    [openedCode],
+                    { type: "text/plain" }
+                  );
 
                   const url =
-                    URL.createObjectURL(
-                      codeBlob
-                    );
+                    URL.createObjectURL(codeBlob);
 
                   const link =
-                    document.createElement(
-                      "a"
-                    );
+                    document.createElement("a");
 
                   link.href = url;
+                  link.download = openedFilename;
 
-                  link.download =
-                    openedFilename;
-
-                  document.body.appendChild(
-                    link
-                  );
-
+                  document.body.appendChild(link);
                   link.click();
+                  document.body.removeChild(link);
 
-                  document.body.removeChild(
-                    link
-                  );
-
-                  URL.revokeObjectURL(
-                    url
-                  );
+                  URL.revokeObjectURL(url);
                 }}
               >
                 Download
               </button>
-
             </div>
-
           </div>
-
         </div>
       )}
-
-      {/* FOOTER */}
 
       <footer>
         ZIVO · Your Voice. Your Assistant.
       </footer>
-
     </div>
   );
 }
