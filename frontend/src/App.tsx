@@ -22,6 +22,7 @@ function App() {
   const [openedFilename, setOpenedFilename] = useState("");
 
   const recognitionRef = useRef<any>(null);
+  const wakeTriggeredRef = useRef(false);
 
   // ==========================================
   // HANDLE COMMAND
@@ -116,10 +117,98 @@ function App() {
   };
 
   // ==========================================
+  // LISTEN FOR THE ACTUAL COMMAND
+  // ==========================================
+
+  const startCommandListening = () => {
+    const SpeechRecognition =
+      window.SpeechRecognition ||
+      window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      setResponse(
+        "Speech recognition is not supported. Please use Google Chrome."
+      );
+      setIsZivoActive(false);
+      return;
+    }
+
+    const commandRecognition = new SpeechRecognition();
+
+    commandRecognition.lang = "en-US";
+    commandRecognition.continuous = false;
+    commandRecognition.interimResults = false;
+
+    recognitionRef.current = commandRecognition;
+
+    commandRecognition.onstart = () => {
+      setIsListening(true);
+      setResponse("I'm listening...");
+    };
+
+    commandRecognition.onresult = async (event: any) => {
+      const command = event.results[0][0].transcript.trim();
+
+      console.log("USER COMMAND:", command);
+
+      setIsListening(false);
+
+      if (!command) {
+        setResponse("I didn't hear a command.");
+        setIsZivoActive(false);
+        return;
+      }
+
+      await handleCommand(command);
+
+      // Phase 2 uses one command at a time.
+      // After the command is handled, Buddy goes back to sleep.
+      setIsZivoActive(false);
+    };
+
+    commandRecognition.onerror = (event: any) => {
+      console.error("COMMAND SPEECH ERROR:", event.error);
+
+      setIsListening(false);
+
+      if (event.error === "not-allowed") {
+        setResponse(
+          "Please allow microphone access for ZIVO."
+        );
+      } else if (event.error === "no-speech") {
+        setResponse("I didn't hear a command.");
+      } else {
+        setResponse(
+          "I couldn't hear your command. Please try again."
+        );
+      }
+
+      setIsZivoActive(false);
+    };
+
+    commandRecognition.onend = () => {
+      setIsListening(false);
+    };
+
+    try {
+      commandRecognition.start();
+    } catch (error) {
+      console.error(
+        "START COMMAND LISTENING ERROR:",
+        error
+      );
+      setIsListening(false);
+      setIsZivoActive(false);
+    }
+  };
+
+  // ==========================================
   // START WAKE-WORD LISTENING
   // ==========================================
 
   const startListening = () => {
+    wakeTriggeredRef.current = false;
+
     const SpeechRecognition =
       window.SpeechRecognition ||
       window.webkitSpeechRecognition;
@@ -131,14 +220,11 @@ function App() {
       return;
     }
 
-    // Stop an existing recognition session first.
     recognitionRef.current?.stop();
 
     const recognition = new SpeechRecognition();
 
     recognition.lang = "en-US";
-
-    // Keep listening because we are waiting for "OK Zivo".
     recognition.continuous = true;
     recognition.interimResults = false;
 
@@ -150,17 +236,25 @@ function App() {
     };
 
     recognition.onresult = (event: any) => {
-      for (let i = event.resultIndex; i < event.results.length; i++) {
+      for (
+        let i = event.resultIndex;
+        i < event.results.length;
+        i++
+      ) {
         if (!event.results[i].isFinal) continue;
 
-        const spokenText = event.results[i][0].transcript
-          .trim()
-          .toLowerCase();
+        const spokenText =
+          event.results[i][0].transcript
+            .trim()
+            .toLowerCase();
 
-        console.log("WAKE LISTENER HEARD:", spokenText);
+        console.log(
+          "WAKE LISTENER HEARD:",
+          spokenText
+        );
 
         // ========================================
-        // PHASE 1 WAKE WORD
+        // PHASE 1 WAKE WORD: BUDDY
         // ========================================
 
         const wakeWordDetected =
@@ -169,21 +263,29 @@ function App() {
           spokenText.includes("budi");
 
         if (wakeWordDetected) {
-          console.log("ZIVO WAKE WORD DETECTED");
+          console.log(
+            "ZIVO WAKE WORD DETECTED"
+          );
+
+          wakeTriggeredRef.current = true;
 
           setIsZivoActive(true);
           setIsListening(false);
+          setResponse(
+            "Yes, I'm awake. What can I do for you?"
+          );
 
           recognition.stop();
-
-          setResponse("Yes, I’m awake. What can I do for you?");
           return;
         }
       }
     };
 
     recognition.onerror = (event: any) => {
-      console.error("Speech error:", event.error);
+      console.error(
+        "WAKE SPEECH ERROR:",
+        event.error
+      );
 
       setIsListening(false);
 
@@ -196,25 +298,26 @@ function App() {
 
     recognition.onend = () => {
       setIsListening(false);
+
+      // IMPORTANT:
+      // Use the ref instead of isZivoActive here.
+      // React state may still contain the old value
+      // when Chrome fires the onend event.
+      if (wakeTriggeredRef.current) {
+        window.setTimeout(() => {
+          startCommandListening();
+        }, 350);
+      }
     };
 
     try {
       recognition.start();
     } catch (error) {
-      console.error("START LISTENING ERROR:", error);
+      console.error(
+        "START LISTENING ERROR:",
+        error
+      );
     }
-  };
-
-  // ==========================================
-  // STOP WAKE-WORD LISTENING
-  // ==========================================
-
-  const stopListening = () => {
-    recognitionRef.current?.stop();
-
-    setIsListening(false);
-    setIsZivoActive(false);
-    setResponse("ZIVO is sleeping.");
   };
 
   // ==========================================
@@ -222,10 +325,12 @@ function App() {
   // ==========================================
 
   const sleepZivo = () => {
+    wakeTriggeredRef.current = false;
     recognitionRef.current?.stop();
 
     setIsListening(false);
     setIsZivoActive(false);
+    setIsProcessing(false);
     setResponse("ZIVO is sleeping.");
   };
 
@@ -379,12 +484,14 @@ function App() {
         </div>
 
         <div className="voice-status">
-          {isZivoActive
+          {isProcessing
+            ? "ZIVO is thinking..."
+            : isZivoActive && isListening
+            ? "Listening for your command..."
+            : isZivoActive
             ? "ZIVO is active"
             : isListening
             ? 'Listening for "Buddy"...'
-            : isProcessing
-            ? "ZIVO is thinking..."
             : 'Click the mic and say "Buddy"'}
         </div>
 
