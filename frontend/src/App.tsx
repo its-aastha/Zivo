@@ -23,12 +23,47 @@ function App() {
 
   const recognitionRef = useRef<any>(null);
   const wakeTriggeredRef = useRef(false);
+  const continuousModeRef = useRef(false);
+  const isSpeakingRef = useRef(false);
+
+  // ==========================================
+  // TEXT TO SPEECH
+  // ==========================================
+
+  const speak = (text: string) => {
+    if (!text || !("speechSynthesis" in window)) {
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+
+    utterance.lang = "en-US";
+    utterance.rate = 1;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+
+    utterance.onstart = () => {
+      isSpeakingRef.current = true;
+    };
+
+    utterance.onend = () => {
+      isSpeakingRef.current = false;
+    };
+
+    utterance.onerror = () => {
+      isSpeakingRef.current = false;
+    };
+
+    window.speechSynthesis.speak(utterance);
+  };
 
   // ==========================================
   // HANDLE COMMAND
   // ==========================================
 
-  const handleCommand = async (command: string) => {
+  const handleCommand = async (command: string): Promise<void> => {
     if (!command.trim()) return;
 
     setIsProcessing(true);
@@ -47,12 +82,28 @@ function App() {
         result.type === "code"
       ) {
         setResponse(result as CodeResponse);
+
+        if (result.success) {
+          speak(
+            result.output
+              ? `Done. ${result.output}`
+              : "Done. The code was executed successfully."
+          );
+        } else {
+          speak(
+            result.output
+              ? `There was an error. ${result.output}`
+              : "There was an error while executing the code."
+          );
+        }
       } else {
-        setResponse(
+        const spokenResponse =
           typeof result === "string"
             ? result
-            : JSON.stringify(result)
-        );
+            : JSON.stringify(result);
+
+        setResponse(spokenResponse);
+        speak(spokenResponse);
       }
     } catch (error) {
       console.error("ZIVO ERROR:", error);
@@ -117,7 +168,7 @@ function App() {
   };
 
   // ==========================================
-  // LISTEN FOR THE ACTUAL COMMAND
+  // START COMMAND LISTENING
   // ==========================================
 
   const startCommandListening = () => {
@@ -129,6 +180,7 @@ function App() {
       setResponse(
         "Speech recognition is not supported. Please use Google Chrome."
       );
+      continuousModeRef.current = false;
       setIsZivoActive(false);
       return;
     }
@@ -142,12 +194,18 @@ function App() {
     recognitionRef.current = commandRecognition;
 
     commandRecognition.onstart = () => {
+      if (isSpeakingRef.current) {
+        commandRecognition.stop();
+        return;
+      }
+
       setIsListening(true);
       setResponse("I'm listening...");
     };
 
     commandRecognition.onresult = async (event: any) => {
-      const command = event.results[0][0].transcript.trim();
+      const command = event.results[0][0].transcript
+        .trim();
 
       console.log("USER COMMAND:", command);
 
@@ -155,15 +213,67 @@ function App() {
 
       if (!command) {
         setResponse("I didn't hear a command.");
-        setIsZivoActive(false);
+
+        if (continuousModeRef.current) {
+          window.setTimeout(() => {
+            startCommandListening();
+          }, 350);
+        }
+
         return;
       }
 
+      // ========================================
+      // SLEEP COMMANDS
+      // ========================================
+
+      const normalizedCommand = command
+        .toLowerCase()
+        .replace(/[.,!?]/g, "")
+        .trim();
+
+      const sleepCommand =
+        normalizedCommand === "sleep" ||
+        normalizedCommand === "go to sleep" ||
+        normalizedCommand === "go to sleep zivo" ||
+        normalizedCommand === "stop listening" ||
+        normalizedCommand === "stop listening zivo" ||
+        normalizedCommand === "goodbye" ||
+        normalizedCommand === "bye";
+
+      if (sleepCommand) {
+        continuousModeRef.current = false;
+        wakeTriggeredRef.current = false;
+
+        setIsProcessing(false);
+        setIsListening(false);
+        setIsZivoActive(false);
+        setResponse("Okay, I'm going to sleep.");
+
+        recognitionRef.current?.stop();
+        speak("Okay, I'm going to sleep.");
+
+        return;
+      }
+
+      // Send the actual command to the existing Zivo backend.
       await handleCommand(command);
 
-      // Phase 2 uses one command at a time.
-      // After the command is handled, Buddy goes back to sleep.
-      setIsZivoActive(false);
+      // ========================================
+      // PHASE 3: LISTEN FOR THE NEXT COMMAND
+      // ========================================
+
+      if (continuousModeRef.current) {
+        setIsZivoActive(true);
+
+        // Give the user a small pause after the backend response
+        // before opening the microphone again.
+        window.setTimeout(() => {
+          if (continuousModeRef.current) {
+            startCommandListening();
+          }
+        }, 500);
+      }
     };
 
     commandRecognition.onerror = (event: any) => {
@@ -172,18 +282,36 @@ function App() {
       setIsListening(false);
 
       if (event.error === "not-allowed") {
+        continuousModeRef.current = false;
+        setIsZivoActive(false);
+
         setResponse(
           "Please allow microphone access for ZIVO."
         );
       } else if (event.error === "no-speech") {
         setResponse("I didn't hear a command.");
+
+        // Stay awake and listen again.
+        if (continuousModeRef.current) {
+          window.setTimeout(() => {
+            if (continuousModeRef.current) {
+              startCommandListening();
+            }
+          }, 500);
+        }
       } else {
         setResponse(
           "I couldn't hear your command. Please try again."
         );
-      }
 
-      setIsZivoActive(false);
+        if (continuousModeRef.current) {
+          window.setTimeout(() => {
+            if (continuousModeRef.current) {
+              startCommandListening();
+            }
+          }, 500);
+        }
+      }
     };
 
     commandRecognition.onend = () => {
@@ -197,10 +325,19 @@ function App() {
         "START COMMAND LISTENING ERROR:",
         error
       );
+
       setIsListening(false);
-      setIsZivoActive(false);
+
+      if (continuousModeRef.current) {
+        window.setTimeout(() => {
+          if (continuousModeRef.current) {
+            startCommandListening();
+          }
+        }, 500);
+      }
     }
   };
+
 
   // ==========================================
   // START WAKE-WORD LISTENING
@@ -220,11 +357,14 @@ function App() {
       return;
     }
 
+    // Stop an existing recognition session first.
     recognitionRef.current?.stop();
 
     const recognition = new SpeechRecognition();
 
     recognition.lang = "en-US";
+
+    // Keep listening because we are waiting for "Buddy".
     recognition.continuous = true;
     recognition.interimResults = false;
 
@@ -254,7 +394,7 @@ function App() {
         );
 
         // ========================================
-        // PHASE 1 WAKE WORD: BUDDY
+        // PHASE 2 WAKE WORD
         // ========================================
 
         const wakeWordDetected =
@@ -268,14 +408,15 @@ function App() {
           );
 
           wakeTriggeredRef.current = true;
-
+          continuousModeRef.current = true;
           setIsZivoActive(true);
-          setIsListening(false);
-          setResponse(
-            "Yes, I'm awake. What can I do for you?"
-          );
+          setResponse("Yes, I'm awake. What can I do for you?");
+          speak("Yes, I'm awake. What can I do for you?");
 
+          // Stop wake-word recognition.
+          // The onend event below will start command listening.
           recognition.stop();
+
           return;
         }
       }
@@ -283,7 +424,7 @@ function App() {
 
     recognition.onerror = (event: any) => {
       console.error(
-        "WAKE SPEECH ERROR:",
+        "WAKE WORD SPEECH ERROR:",
         event.error
       );
 
@@ -299,14 +440,25 @@ function App() {
     recognition.onend = () => {
       setIsListening(false);
 
-      // IMPORTANT:
-      // Use the ref instead of isZivoActive here.
-      // React state may still contain the old value
-      // when Chrome fires the onend event.
+      // If Buddy woke Zivo, immediately switch to
+      // listening for the actual user command.
       if (wakeTriggeredRef.current) {
-        window.setTimeout(() => {
+        // Small delay prevents Chrome from rejecting
+        // a new recognition session immediately after stop().
+        const waitForSpeech = () => {
+          if (!wakeTriggeredRef.current) {
+            return;
+          }
+
+          if (isSpeakingRef.current) {
+            window.setTimeout(waitForSpeech, 150);
+            return;
+          }
+
           startCommandListening();
-        }, 350);
+        };
+
+        window.setTimeout(waitForSpeech, 150);
       }
     };
 
@@ -314,11 +466,12 @@ function App() {
       recognition.start();
     } catch (error) {
       console.error(
-        "START LISTENING ERROR:",
+        "START WAKE LISTENING ERROR:",
         error
       );
     }
   };
+
 
   // ==========================================
   // PUT ZIVO BACK TO SLEEP
@@ -326,7 +479,11 @@ function App() {
 
   const sleepZivo = () => {
     wakeTriggeredRef.current = false;
+    continuousModeRef.current = false;
     recognitionRef.current?.stop();
+
+    window.speechSynthesis.cancel();
+    isSpeakingRef.current = false;
 
     setIsListening(false);
     setIsZivoActive(false);
