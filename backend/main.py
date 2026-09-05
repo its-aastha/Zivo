@@ -173,5 +173,8 @@ def download_generated_code(
 #cd backend
 #uvicorn main:app --reload
 
+#not turn on the script
 #cd frontend
 #npm run dev
+
+#allow the app gave the voice command :- Buddy
