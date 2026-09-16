@@ -1,5 +1,10 @@
 import re
 
+# Import the parser so website and application
+# commands are understood in one place.
+from agent.local_parser import parse
+
+
 # ==========================================
 # NORMALIZE FILENAME
 # ==========================================
@@ -8,7 +13,7 @@ def normalize_filename(value: str) -> str:
 
     value = value.strip()
 
-    #Convert the file text into the specific
+    # Convert the file text into the specific
     # "Aastha dot txt" -> "Aastha.txt"
     value = re.sub(
         r"\s+dot\s+([a-zA-Z0-9]+)$",
@@ -238,38 +243,30 @@ def local_route(command: str):
 
 
     # ==========================================
-    # OPEN APPLICATION
+    # OPEN WEBSITE / APPLICATION
     # ==========================================
+    # The local_parser decides whether the user
+    # wants a website or a desktop application.
+    #
+    # Examples:
+    # "open youtube"  -> open_website
+    # "open spotify"  -> open_website
+    # "open chrome"   -> open_application
+    #
+    # Keeping this logic in local_parser.py
+    # avoids duplicating the same command rules.
 
-    open_patterns = [
-        r"^open\s+(.+)$",
-        r"^launch\s+(.+)$",
-        r"^start\s+(.+)$",
-    ]
+    if re.match(
+        r"^(open|launch|start|go to)\s+",
+        command,
+        flags=re.IGNORECASE
+    ):
 
-    for pattern in open_patterns:
+        parsed_result = parse(command)
 
-        match = re.match(
-            pattern,
-            command,
-            flags=re.IGNORECASE
-        )
+        if parsed_result:
 
-        if match:
-
-            app = match.group(1).strip()
-
-            app = re.sub(
-                r"\b(application|app|please)\b",
-                "",
-                app,
-                flags=re.IGNORECASE
-            )
-
-            return {
-                "action": "open_application",
-                "app": app.strip()
-            }
+            return parsed_result
 
 
     # ==========================================
@@ -545,8 +542,7 @@ def local_route(command: str):
 
     match = re.match(
         natural_create_pattern,
-        command,
-        flags=re.IGNORECASE
+        command
     )
 
 

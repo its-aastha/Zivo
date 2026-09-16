@@ -14,17 +14,19 @@ interface CodeResponse {
 function App() {
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [isZivoActive, setIsZivoActive] = useState(false);
 
   const [response, setResponse] = useState<string | CodeResponse>("");
 
   const [openedCode, setOpenedCode] = useState("");
   const [openedFilename, setOpenedFilename] = useState("");
 
+  // Stores the current speech recognition session.
   const recognitionRef = useRef<any>(null);
-  const wakeTriggeredRef = useRef(false);
-  const continuousModeRef = useRef(false);
+
+  // Prevents Zivo from speaking and listening at
+  // the same time.
   const isSpeakingRef = useRef(false);
+
 
   // ==========================================
   // TEXT TO SPEECH
@@ -58,6 +60,7 @@ function App() {
 
     window.speechSynthesis.speak(utterance);
   };
+
 
   // ==========================================
   // HANDLE COMMAND
@@ -113,6 +116,7 @@ function App() {
     }
   };
 
+
   // ==========================================
   // OPEN GENERATED CODE
   // ==========================================
@@ -140,6 +144,7 @@ function App() {
     }
   };
 
+
   // ==========================================
   // DOWNLOAD GENERATED CODE
   // ==========================================
@@ -158,6 +163,7 @@ function App() {
     document.body.removeChild(link);
   };
 
+
   // ==========================================
   // CLOSE CODE VIEWER
   // ==========================================
@@ -167,9 +173,18 @@ function App() {
     setOpenedFilename("");
   };
 
+
   // ==========================================
-  // START COMMAND LISTENING
+  // START ONE-TIME COMMAND LISTENING
   // ==========================================
+  // The user must click the mic button to start.
+  //
+  // Zivo listens for ONE command only.
+  // After receiving the command, listening stops.
+  //
+  // No wake word.
+  // No continuous listening.
+  // No automatic restart.
 
   const startCommandListening = () => {
     const SpeechRecognition =
@@ -180,22 +195,33 @@ function App() {
       setResponse(
         "Speech recognition is not supported. Please use Google Chrome."
       );
-      continuousModeRef.current = false;
-      setIsZivoActive(false);
       return;
     }
 
-    const commandRecognition = new SpeechRecognition();
+    // Stop any previous recognition session.
+    recognitionRef.current?.stop();
 
-    commandRecognition.lang = "en-US";
-    commandRecognition.continuous = false;
-    commandRecognition.interimResults = false;
+    const recognition = new SpeechRecognition();
 
-    recognitionRef.current = commandRecognition;
+    recognition.lang = "en-US";
 
-    commandRecognition.onstart = () => {
+    // Listen for only one command.
+    recognition.continuous = false;
+
+    // Return only the final recognized sentence.
+    recognition.interimResults = false;
+
+    recognitionRef.current = recognition;
+
+
+    // ========================================
+    // RECOGNITION STARTED
+    // ========================================
+
+    recognition.onstart = () => {
+      // Do not start listening while Zivo is speaking.
       if (isSpeakingRef.current) {
-        commandRecognition.stop();
+        recognition.stop();
         return;
       }
 
@@ -203,29 +229,30 @@ function App() {
       setResponse("I'm listening...");
     };
 
-    commandRecognition.onresult = async (event: any) => {
+
+    // ========================================
+    // COMMAND RECEIVED
+    // ========================================
+
+    recognition.onresult = async (event: any) => {
       const command = event.results[0][0].transcript
         .trim();
 
       console.log("USER COMMAND:", command);
 
+      // Stop the listening indicator immediately.
       setIsListening(false);
 
       if (!command) {
         setResponse("I didn't hear a command.");
-
-        if (continuousModeRef.current) {
-          window.setTimeout(() => {
-            startCommandListening();
-          }, 350);
-        }
-
         return;
       }
 
       // ========================================
       // SLEEP COMMANDS
       // ========================================
+      // These are kept for compatibility with
+      // your existing Zivo behavior.
 
       const normalizedCommand = command
         .toLowerCase()
@@ -242,189 +269,35 @@ function App() {
         normalizedCommand === "bye";
 
       if (sleepCommand) {
-        continuousModeRef.current = false;
-        wakeTriggeredRef.current = false;
+        recognitionRef.current?.stop();
 
-        setIsProcessing(false);
+        window.speechSynthesis.cancel();
+        isSpeakingRef.current = false;
+
         setIsListening(false);
-        setIsZivoActive(false);
+        setIsProcessing(false);
         setResponse("Okay, I'm going to sleep.");
 
-        recognitionRef.current?.stop();
         speak("Okay, I'm going to sleep.");
 
         return;
       }
 
-      // Send the actual command to the existing Zivo backend.
+      // Send the recognized command to the backend.
       await handleCommand(command);
 
-      // ========================================
-      // PHASE 3: LISTEN FOR THE NEXT COMMAND
-      // ========================================
-
-      if (continuousModeRef.current) {
-        setIsZivoActive(true);
-
-        // Give the user a small pause after the backend response
-        // before opening the microphone again.
-        window.setTimeout(() => {
-          if (continuousModeRef.current) {
-            startCommandListening();
-          }
-        }, 500);
-      }
+      // Listening does NOT restart automatically.
+      // The user must click the mic again.
     };
 
-    commandRecognition.onerror = (event: any) => {
-      console.error("COMMAND SPEECH ERROR:", event.error);
 
-      setIsListening(false);
-
-      if (event.error === "not-allowed") {
-        continuousModeRef.current = false;
-        setIsZivoActive(false);
-
-        setResponse(
-          "Please allow microphone access for ZIVO."
-        );
-      } else if (event.error === "no-speech") {
-        setResponse("I didn't hear a command.");
-
-        // Stay awake and listen again.
-        if (continuousModeRef.current) {
-          window.setTimeout(() => {
-            if (continuousModeRef.current) {
-              startCommandListening();
-            }
-          }, 500);
-        }
-      } else {
-        setResponse(
-          "I couldn't hear your command. Please try again."
-        );
-
-        if (continuousModeRef.current) {
-          window.setTimeout(() => {
-            if (continuousModeRef.current) {
-              startCommandListening();
-            }
-          }, 500);
-        }
-      }
-    };
-
-    commandRecognition.onend = () => {
-      setIsListening(false);
-    };
-
-    try {
-      commandRecognition.start();
-    } catch (error) {
-      console.error(
-        "START COMMAND LISTENING ERROR:",
-        error
-      );
-
-      setIsListening(false);
-
-      if (continuousModeRef.current) {
-        window.setTimeout(() => {
-          if (continuousModeRef.current) {
-            startCommandListening();
-          }
-        }, 500);
-      }
-    }
-  };
-
-
-  // ==========================================
-  // START WAKE-WORD LISTENING
-  // ==========================================
-
-  const startListening = () => {
-    wakeTriggeredRef.current = false;
-
-    const SpeechRecognition =
-      window.SpeechRecognition ||
-      window.webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-      setResponse(
-        "Speech recognition is not supported. Please use Google Chrome."
-      );
-      return;
-    }
-
-    // Stop an existing recognition session first.
-    recognitionRef.current?.stop();
-
-    const recognition = new SpeechRecognition();
-
-    recognition.lang = "en-US";
-
-    // Keep listening because we are waiting for "Buddy".
-    recognition.continuous = true;
-    recognition.interimResults = false;
-
-    recognitionRef.current = recognition;
-
-    recognition.onstart = () => {
-      setIsListening(true);
-      setResponse("");
-    };
-
-    recognition.onresult = (event: any) => {
-      for (
-        let i = event.resultIndex;
-        i < event.results.length;
-        i++
-      ) {
-        if (!event.results[i].isFinal) continue;
-
-        const spokenText =
-          event.results[i][0].transcript
-            .trim()
-            .toLowerCase();
-
-        console.log(
-          "WAKE LISTENER HEARD:",
-          spokenText
-        );
-
-        // ========================================
-        // PHASE 2 WAKE WORD
-        // ========================================
-
-        const wakeWordDetected =
-          spokenText.includes("buddy") ||
-          spokenText.includes("buddie") ||
-          spokenText.includes("budi");
-
-        if (wakeWordDetected) {
-          console.log(
-            "ZIVO WAKE WORD DETECTED"
-          );
-
-          wakeTriggeredRef.current = true;
-          continuousModeRef.current = true;
-          setIsZivoActive(true);
-          setResponse("Yes, I'm awake. What can I do for you?");
-          speak("Yes, I'm awake. What can I do for you?");
-
-          // Stop wake-word recognition.
-          // The onend event below will start command listening.
-          recognition.stop();
-
-          return;
-        }
-      }
-    };
+    // ========================================
+    // SPEECH RECOGNITION ERROR
+    // ========================================
 
     recognition.onerror = (event: any) => {
       console.error(
-        "WAKE WORD SPEECH ERROR:",
+        "COMMAND SPEECH ERROR:",
         event.error
       );
 
@@ -434,74 +307,75 @@ function App() {
         setResponse(
           "Please allow microphone access for ZIVO."
         );
+      } else if (event.error === "no-speech") {
+        setResponse("I didn't hear a command.");
+      } else if (event.error === "aborted") {
+        // The user stopped listening manually.
+        // No error message is needed.
+      } else {
+        setResponse(
+          "I couldn't hear your command. Please try again."
+        );
       }
     };
+
+
+    // ========================================
+    // RECOGNITION ENDED
+    // ========================================
+    // This only updates the UI.
+    // It does NOT start listening again.
 
     recognition.onend = () => {
       setIsListening(false);
-
-      // If Buddy woke Zivo, immediately switch to
-      // listening for the actual user command.
-      if (wakeTriggeredRef.current) {
-        // Small delay prevents Chrome from rejecting
-        // a new recognition session immediately after stop().
-        const waitForSpeech = () => {
-          if (!wakeTriggeredRef.current) {
-            return;
-          }
-
-          if (isSpeakingRef.current) {
-            window.setTimeout(waitForSpeech, 150);
-            return;
-          }
-
-          startCommandListening();
-        };
-
-        window.setTimeout(waitForSpeech, 150);
-      }
     };
+
+
+    // ========================================
+    // START MICROPHONE
+    // ========================================
 
     try {
       recognition.start();
     } catch (error) {
       console.error(
-        "START WAKE LISTENING ERROR:",
+        "START COMMAND LISTENING ERROR:",
         error
       );
+
+      setIsListening(false);
     }
   };
 
 
   // ==========================================
-  // PUT ZIVO BACK TO SLEEP
+  // STOP COMMAND LISTENING
   // ==========================================
+  // Called when the user clicks the mic while
+  // Zivo is already listening.
 
-  const sleepZivo = () => {
-    wakeTriggeredRef.current = false;
-    continuousModeRef.current = false;
+  const stopCommandListening = () => {
     recognitionRef.current?.stop();
 
-    window.speechSynthesis.cancel();
-    isSpeakingRef.current = false;
-
     setIsListening(false);
-    setIsZivoActive(false);
-    setIsProcessing(false);
-    setResponse("ZIVO is sleeping.");
+    setResponse("Listening stopped.");
   };
 
+
   // ==========================================
-  // TOGGLE LISTENING
+  // TOGGLE MICROPHONE
   // ==========================================
+  // First click  → Start listening.
+  // Second click → Stop listening.
 
   const toggleListening = () => {
-    if (isZivoActive || isListening) {
-      sleepZivo();
+    if (isListening) {
+      stopCommandListening();
     } else {
-      startListening();
+      startCommandListening();
     }
   };
+
 
   // ==========================================
   // RENDER RESPONSE
@@ -577,6 +451,7 @@ function App() {
     );
   };
 
+
   // ==========================================
   // UI
   // ==========================================
@@ -595,12 +470,12 @@ function App() {
 
         <div
           className={`voice-area ${
-            isListening || isZivoActive
+            isListening
               ? "is-listening"
               : ""
           }`}
         >
-          {(isListening || isZivoActive) && (
+          {isListening && (
             <>
               <div className="wave wave-left"></div>
               <div className="wave wave-right"></div>
@@ -610,13 +485,17 @@ function App() {
 
           <button
             className={`mic-button ${
-              isListening || isZivoActive
+              isListening
                 ? "mic-active"
                 : ""
             }`}
             onClick={toggleListening}
             disabled={isProcessing}
-            aria-label="Voice assistant"
+            aria-label={
+              isListening
+                ? "Stop listening"
+                : "Start listening"
+            }
           >
             <svg
               viewBox="0 0 24 24"
@@ -643,13 +522,9 @@ function App() {
         <div className="voice-status">
           {isProcessing
             ? "ZIVO is thinking..."
-            : isZivoActive && isListening
-            ? "Listening for your command..."
-            : isZivoActive
-            ? "ZIVO is active"
             : isListening
-            ? 'Listening for "Buddy"...'
-            : 'Click the mic and say "Buddy"'}
+            ? "Listening for your command..."
+            : "Click the mic and say your command"}
         </div>
 
         {response && (
@@ -731,6 +606,11 @@ function App() {
 }
 
 export default App;
+
+
+// ==========================================
+// BROWSER SPEECH RECOGNITION TYPES
+// ==========================================
 
 declare global {
   interface Window {
