@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { type FormEvent, useRef, useState } from "react";
 import "./App.css";
 import { sendCommand } from "./api";
 
@@ -12,71 +12,35 @@ interface CodeResponse {
 }
 
 function App() {
+  const [command, setCommand] = useState("");
+  const [response, setResponse] = useState<string | CodeResponse>("");
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const [response, setResponse] = useState<string | CodeResponse>("");
-
-  const [openedCode, setOpenedCode] = useState("");
-  const [openedFilename, setOpenedFilename] = useState("");
-
-  // Stores the current speech recognition session.
   const recognitionRef = useRef<any>(null);
 
-  // Prevents Zivo from speaking and listening at
-  // the same time.
-  const isSpeakingRef = useRef(false);
-
-
-  // ==========================================
-  // TEXT TO SPEECH
-  // ==========================================
-
   const speak = (text: string) => {
-    if (!text || !("speechSynthesis" in window)) {
-      return;
-    }
+    if (!text || !("speechSynthesis" in window)) return;
 
     window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
-
     utterance.lang = "en-US";
     utterance.rate = 1;
-    utterance.pitch = 1;
-    utterance.volume = 1;
-
-    utterance.onstart = () => {
-      isSpeakingRef.current = true;
-    };
-
-    utterance.onend = () => {
-      isSpeakingRef.current = false;
-    };
-
-    utterance.onerror = () => {
-      isSpeakingRef.current = false;
-    };
-
     window.speechSynthesis.speak(utterance);
   };
 
+  const runCommand = async (value: string) => {
+    const cleanedCommand = value.trim();
 
-  // ==========================================
-  // HANDLE COMMAND
-  // ==========================================
+    if (!cleanedCommand || isProcessing) return;
 
-  const handleCommand = async (command: string): Promise<void> => {
-    if (!command.trim()) return;
-
-    setIsProcessing(true);
+    setCommand("");
     setResponse("");
-    setOpenedCode("");
-    setOpenedFilename("");
+    setIsProcessing(true);
 
     try {
-      const data = await sendCommand(command);
-
+      const data = await sendCommand(cleanedCommand);
       const result = data.response;
 
       if (
@@ -86,107 +50,36 @@ function App() {
       ) {
         setResponse(result as CodeResponse);
 
-        if (result.success) {
-          speak(
-            result.output
-              ? `Done. ${result.output}`
-              : "Done. The code was executed successfully."
-          );
-        } else {
-          speak(
-            result.output
-              ? `There was an error. ${result.output}`
-              : "There was an error while executing the code."
-          );
-        }
+        const message = result.success
+          ? "Done. The code was executed successfully."
+          : "There was an error while executing the code.";
+
+        speak(message);
       } else {
-        const spokenResponse =
+        const message =
           typeof result === "string"
             ? result
             : JSON.stringify(result);
 
-        setResponse(spokenResponse);
-        speak(spokenResponse);
+        setResponse(message);
+        speak(message);
       }
     } catch (error) {
-      console.error("ZIVO ERROR:", error);
-      setResponse("I couldn't connect to ZIVO.");
+      console.error("ZIVO COMMAND ERROR:", error);
+      setResponse(
+        "I couldn't connect to Zivo. Please check that the backend is running."
+      );
     } finally {
       setIsProcessing(false);
     }
   };
 
-
-  // ==========================================
-  // OPEN GENERATED CODE
-  // ==========================================
-
-  const openCode = async (
-    fileId: string,
-    filename: string
-  ) => {
-    try {
-      const result = await fetch(
-        `http://127.0.0.1:8000/code/${fileId}`
-      );
-
-      if (!result.ok) {
-        throw new Error("Could not load generated code.");
-      }
-
-      const data = await result.json();
-
-      setOpenedCode(data.code);
-      setOpenedFilename(data.filename || filename);
-    } catch (error) {
-      console.error("OPEN CODE ERROR:", error);
-      alert("Could not open the generated code.");
-    }
+  const submitCommand = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    void runCommand(command);
   };
 
-
-  // ==========================================
-  // DOWNLOAD GENERATED CODE
-  // ==========================================
-
-  const downloadCode = (fileId: string) => {
-    const downloadUrl =
-      `http://127.0.0.1:8000/code/${fileId}/download`;
-
-    const link = document.createElement("a");
-
-    link.href = downloadUrl;
-    link.setAttribute("download", "");
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-
-  // ==========================================
-  // CLOSE CODE VIEWER
-  // ==========================================
-
-  const closeCode = () => {
-    setOpenedCode("");
-    setOpenedFilename("");
-  };
-
-
-  // ==========================================
-  // START ONE-TIME COMMAND LISTENING
-  // ==========================================
-  // The user must click the mic button to start.
-  //
-  // Zivo listens for ONE command only.
-  // After receiving the command, listening stops.
-  //
-  // No wake word.
-  // No continuous listening.
-  // No automatic restart.
-
-  const startCommandListening = () => {
+  const startListening = () => {
     const SpeechRecognition =
       window.SpeechRecognition ||
       window.webkitSpeechRecognition;
@@ -198,188 +91,124 @@ function App() {
       return;
     }
 
-    // Stop any previous recognition session.
     recognitionRef.current?.stop();
 
     const recognition = new SpeechRecognition();
 
     recognition.lang = "en-US";
-
-    // Listen for only one command.
     recognition.continuous = false;
-
-    // Return only the final recognized sentence.
     recognition.interimResults = false;
 
-    recognitionRef.current = recognition;
-
-
-    // ========================================
-    // RECOGNITION STARTED
-    // ========================================
-
     recognition.onstart = () => {
-      // Do not start listening while Zivo is speaking.
-      if (isSpeakingRef.current) {
-        recognition.stop();
-        return;
-      }
-
       setIsListening(true);
-      setResponse("I'm listening...");
+      setResponse("Listening for your command...");
     };
 
+    recognition.onresult = (event: any) => {
+      const spokenCommand = event.results[0][0].transcript.trim();
 
-    // ========================================
-    // COMMAND RECEIVED
-    // ========================================
-
-    recognition.onresult = async (event: any) => {
-      const command = event.results[0][0].transcript
-        .trim();
-
-      console.log("USER COMMAND:", command);
-
-      // Stop the listening indicator immediately.
       setIsListening(false);
+      setCommand(spokenCommand);
 
-      if (!command) {
-        setResponse("I didn't hear a command.");
-        return;
+      if (spokenCommand) {
+        void runCommand(spokenCommand);
       }
-
-      // ========================================
-      // SLEEP COMMANDS
-      // ========================================
-      // These are kept for compatibility with
-      // your existing Zivo behavior.
-
-      const normalizedCommand = command
-        .toLowerCase()
-        .replace(/[.,!?]/g, "")
-        .trim();
-
-      const sleepCommand =
-        normalizedCommand === "sleep" ||
-        normalizedCommand === "go to sleep" ||
-        normalizedCommand === "go to sleep zivo" ||
-        normalizedCommand === "stop listening" ||
-        normalizedCommand === "stop listening zivo" ||
-        normalizedCommand === "goodbye" ||
-        normalizedCommand === "bye";
-
-      if (sleepCommand) {
-        recognitionRef.current?.stop();
-
-        window.speechSynthesis.cancel();
-        isSpeakingRef.current = false;
-
-        setIsListening(false);
-        setIsProcessing(false);
-        setResponse("Okay, I'm going to sleep.");
-
-        speak("Okay, I'm going to sleep.");
-
-        return;
-      }
-
-      // Send the recognized command to the backend.
-      await handleCommand(command);
-
-      // Listening does NOT restart automatically.
-      // The user must click the mic again.
     };
-
-
-    // ========================================
-    // SPEECH RECOGNITION ERROR
-    // ========================================
 
     recognition.onerror = (event: any) => {
-      console.error(
-        "COMMAND SPEECH ERROR:",
-        event.error
-      );
-
+      console.error("SPEECH ERROR:", event.error);
       setIsListening(false);
 
       if (event.error === "not-allowed") {
-        setResponse(
-          "Please allow microphone access for ZIVO."
-        );
+        setResponse("Please allow microphone access for Zivo.");
       } else if (event.error === "no-speech") {
         setResponse("I didn't hear a command.");
-      } else if (event.error === "aborted") {
-        // The user stopped listening manually.
-        // No error message is needed.
-      } else {
-        setResponse(
-          "I couldn't hear your command. Please try again."
-        );
+      } else if (event.error !== "aborted") {
+        setResponse("I couldn't hear your command. Please try again.");
       }
     };
-
-
-    // ========================================
-    // RECOGNITION ENDED
-    // ========================================
-    // This only updates the UI.
-    // It does NOT start listening again.
 
     recognition.onend = () => {
       setIsListening(false);
     };
 
-
-    // ========================================
-    // START MICROPHONE
-    // ========================================
+    recognitionRef.current = recognition;
 
     try {
       recognition.start();
     } catch (error) {
-      console.error(
-        "START COMMAND LISTENING ERROR:",
-        error
-      );
-
+      console.error("MIC START ERROR:", error);
       setIsListening(false);
     }
   };
 
-
-  // ==========================================
-  // STOP COMMAND LISTENING
-  // ==========================================
-  // Called when the user clicks the mic while
-  // Zivo is already listening.
-
-  const stopCommandListening = () => {
+  const stopListening = () => {
     recognitionRef.current?.stop();
-
     setIsListening(false);
     setResponse("Listening stopped.");
   };
 
-
-  // ==========================================
-  // TOGGLE MICROPHONE
-  // ==========================================
-  // First click  → Start listening.
-  // Second click → Stop listening.
-
-  const toggleListening = () => {
+  const toggleMic = () => {
     if (isListening) {
-      stopCommandListening();
+      stopListening();
     } else {
-      startCommandListening();
+      startListening();
     }
   };
 
+  const openCode = async (fileId: string) => {
+    try {
+      const result = await fetch(
+        `http://127.0.0.1:8000/code/${fileId}`
+      );
 
-  // ==========================================
-  // RENDER RESPONSE
-  // ==========================================
+      if (!result.ok) throw new Error("Unable to open code.");
+
+      const data = await result.json();
+
+      const codeWindow = window.open("", "_blank");
+
+      if (codeWindow) {
+        codeWindow.document.write(`
+          <html>
+            <head>
+              <title>${data.filename || "Generated Code"}</title>
+              <style>
+                body {
+                  margin: 0;
+                  padding: 24px;
+                  background: #202018;
+                  color: #f8f5df;
+                  font-family: Consolas, monospace;
+                }
+                pre {
+                  white-space: pre-wrap;
+                  line-height: 1.6;
+                }
+              </style>
+            </head>
+            <body>
+              <h2>${data.filename || "Generated Code"}</h2>
+              <pre>${escapeHtml(data.code || "")}</pre>
+            </body>
+          </html>
+        `);
+        codeWindow.document.close();
+      }
+    } catch (error) {
+      console.error("OPEN CODE ERROR:", error);
+      setResponse("Could not open the generated code.");
+    }
+  };
+
+  const downloadCode = (fileId: string) => {
+    const link = document.createElement("a");
+    link.href = `http://127.0.0.1:8000/code/${fileId}/download`;
+    link.setAttribute("download", "");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const renderResponse = () => {
     if (
@@ -387,56 +216,25 @@ function App() {
       response.type === "code"
     ) {
       return (
-        <div className="code-file-card">
-          <div className="code-file-header">
-            <div className="code-file-info">
-              <div className="code-file-language">
-                {response.language.toUpperCase()}
-              </div>
-
-              <div className="code-file-name">
-                {response.filename}
-              </div>
-            </div>
-
-            <div
-              className={
-                response.success
-                  ? "code-status code-success"
-                  : "code-status code-error"
-              }
-            >
-              {response.success ? "Ready" : "Error"}
-            </div>
+        <div className="code-result">
+          <div>
+            <span className="result-label">
+              {response.language.toUpperCase()}
+            </span>
+            <h3>{response.filename}</h3>
           </div>
 
-          <div className="code-file-output">
+          <p>
             {response.success
-              ? `Output: ${response.output || "No output"}`
-              : `Execution Error: ${
-                  response.output || "Unknown error"
-                }`}
-          </div>
+              ? response.output || "Code executed successfully."
+              : response.output || "Code execution failed."}
+          </p>
 
-          <div className="code-file-actions">
-            <button
-              className="code-open-button"
-              onClick={() =>
-                openCode(
-                  response.file_id,
-                  response.filename
-                )
-              }
-            >
-              Open Code
+          <div className="result-actions">
+            <button onClick={() => openCode(response.file_id)}>
+              Open code
             </button>
-
-            <button
-              className="code-download-button"
-              onClick={() =>
-                downloadCode(response.file_id)
-              }
-            >
+            <button onClick={() => downloadCode(response.file_id)}>
               Download
             </button>
           </div>
@@ -444,173 +242,197 @@ function App() {
       );
     }
 
-    return (
-      <div className="response-text">
-        {String(response)}
-      </div>
-    );
+    return <p className="response-copy">{String(response)}</p>;
   };
 
-
-  // ==========================================
-  // UI
-  // ==========================================
-
   return (
-    <div className="zivo-app">
-      <div className="zivo-logo">
-        zivo
-        <span className="cursor">|</span>
-      </div>
-
-      <main className="zivo-main">
-        <h1 className="hero-title">
-          Hi! How can <span>I help you?</span>
-        </h1>
-
-        <div
-          className={`voice-area ${
-            isListening
-              ? "is-listening"
-              : ""
-          }`}
-        >
-          {isListening && (
-            <>
-              <div className="wave wave-left"></div>
-              <div className="wave wave-right"></div>
-              <div className="voice-particles"></div>
-            </>
-          )}
-
-          <button
-            className={`mic-button ${
-              isListening
-                ? "mic-active"
-                : ""
-            }`}
-            onClick={toggleListening}
-            disabled={isProcessing}
-            aria-label={
-              isListening
-                ? "Stop listening"
-                : "Start listening"
-            }
-          >
-            <svg
-              viewBox="0 0 24 24"
-              className="mic-icon"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-            >
-              <rect
-                x="8"
-                y="3"
-                width="8"
-                height="12"
-                rx="4"
-              />
-
-              <path d="M5 11a7 7 0 0 0 14 0" />
-              <path d="M12 18v3" />
-              <path d="M8 21h8" />
-            </svg>
-          </button>
-        </div>
-
-        <div className="voice-status">
-          {isProcessing
-            ? "ZIVO is thinking..."
-            : isListening
-            ? "Listening for your command..."
-            : "Click the mic and say your command"}
-        </div>
-
-        {response && (
-          <div className="zivo-response">
-            {renderResponse()}
+    <div className="zivo-page">
+      <div className="browser-shell">
+        <div className="browser-bar">
+          <div className="traffic-lights" aria-hidden="true">
+            <span className="traffic red" />
+            <span className="traffic yellow" />
+            <span className="traffic green" />
           </div>
-        )}
-      </main>
+        </div>
 
-      {openedCode && (
-        <div className="code-modal-overlay">
-          <div className="code-modal">
-            <div className="code-modal-header">
-              <div className="code-modal-title">
-                {openedFilename}
+        <header className="topbar">
+          <div className="brand">zivo.</div>
+
+          <nav className="navigation">
+            <a href="#simple">simple</a>
+            <a href="#helpful">helpful</a>
+            <a href="#yours">yours</a>
+          </nav>
+
+          <div className="top-note">
+            good idea
+            <br />
+            better days
+          </div>
+        </header>
+
+        <main className="main-layout">
+          <section className="intro-panel">
+            <div className="intro-copy">
+              <h1>zivo</h1>
+              <p>
+                your voice.
+                <br />
+                your assistant.
+              </p>
+
+              <div className="curved-arrow" aria-hidden="true">
+                ↗
               </div>
-
-              <button
-                className="code-close-button"
-                onClick={closeCode}
-                aria-label="Close code viewer"
-              >
-                ×
-              </button>
             </div>
 
-            <pre className="code-modal-content">
-              <code>{openedCode}</code>
-            </pre>
+            <div className="flower-note">
+              smarter
+              <br />
+              things
+              <br />
+              together
+              <br />
+              :)
+            </div>
 
-            <div className="code-modal-footer">
+            <div className="mic-section">
               <button
-                className="code-modal-copy"
-                onClick={() =>
-                  navigator.clipboard.writeText(
-                    openedCode
-                  )
+                className={`mic-button ${
+                  isListening ? "is-listening" : ""
+                }`}
+                onClick={toggleMic}
+                disabled={isProcessing}
+                aria-label={
+                  isListening ? "Stop listening" : "Start listening"
                 }
               >
-                Copy Code
+                <span className="mic-ring">
+                  <svg
+                    viewBox="0 0 64 64"
+                    className="mic-icon"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                  >
+                    <rect
+                      x="23"
+                      y="8"
+                      width="18"
+                      height="32"
+                      rx="9"
+                    />
+                    <path d="M15 29a17 17 0 0 0 34 0" />
+                    <path d="M32 46v10" />
+                    <path d="M23 56h18" />
+                  </svg>
+                </span>
               </button>
+
+              <p className="mic-caption">
+                {isListening
+                  ? "listening..."
+                  : "click the mic"}
+                <br />
+                {isListening
+                  ? "say your command"
+                  : "and say your command"}
+              </p>
+            </div>
+
+            <div className="bottom-blob">
+              <span>ideas</span>
+              <span>commands</span>
+              <span>a brighter you</span>
+              <i />
+            </div>
+          </section>
+
+          <section className="workspace-panel">
+            <div className="workspace-card" id="helpful">
+              <div className="workspace-header">
+                <strong>zivo <span>✦</span></strong>
+                <span>here to help!</span>
+              </div>
+
+              <div className="workspace-content">
+                {response ? (
+                  renderResponse()
+                ) : (
+                  <>
+                    <div className="spark">⌁</div>
+                    <p className="placeholder">
+                      Your response will appear here...
+                    </p>
+
+                    <ul>
+                      <li>Answers</li>
+                      <li>Actions</li>
+                      <li>Code</li>
+                      <li>Files</li>
+                      <li>Anything you need</li>
+                    </ul>
+                  </>
+                )}
+
+                <div className="workspace-sticker">
+                  small commands
+                  <br />
+                  big possibilities
+                  <br />
+                  ♥
+                </div>
+              </div>
+            </div>
+
+            <form className="command-form" onSubmit={submitCommand}>
+              <button
+                type="button"
+                className="attach-button"
+                aria-label="Attach file"
+              >
+                ⌕
+              </button>
+
+              <input
+                value={command}
+                onChange={(event) => setCommand(event.target.value)}
+                placeholder="Type a command..."
+                disabled={isProcessing}
+              />
 
               <button
-                className="code-modal-download"
-                onClick={() => {
-                  const codeBlob = new Blob(
-                    [openedCode],
-                    { type: "text/plain" }
-                  );
-
-                  const url =
-                    URL.createObjectURL(codeBlob);
-
-                  const link =
-                    document.createElement("a");
-
-                  link.href = url;
-                  link.download = openedFilename;
-
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-
-                  URL.revokeObjectURL(url);
-                }}
+                type="submit"
+                className="send-button"
+                disabled={isProcessing || !command.trim()}
+                aria-label="Send command"
               >
-                Download
+                ↑
               </button>
-            </div>
-          </div>
-        </div>
-      )}
+            </form>
 
-      <footer>
-        ZIVO · Your Voice. Your Assistant.
-      </footer>
+            <p className="footer-note">
+              let's build a smarter you.
+              <span />
+            </p>
+          </section>
+        </main>
+      </div>
     </div>
   );
 }
 
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 export default App;
-
-
-// ==========================================
-// BROWSER SPEECH RECOGNITION TYPES
-// ==========================================
 
 declare global {
   interface Window {

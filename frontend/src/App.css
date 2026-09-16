@@ -1,921 +1,639 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Patrick+Hand&family=Playfair+Display:wght@700;800&display=swap");
+
+:root {
+  font-family: "DM Mono", monospace;
+  color: #282b0b;
+  background: #f4f3d9;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
 * {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  font-family: Inter, Arial, sans-serif;
-  background: #02050d;
-  color: white;
-  overflow: hidden;
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.5), transparent 28%),
+    #f4f3d9;
+}
+
+button,
+input {
+  font: inherit;
 }
 
 button {
-  font-family: inherit;
+  cursor: pointer;
 }
 
-/* =====================================
-   MAIN APP
-===================================== */
+button:disabled,
+input:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
 
-.zivo-app {
+.zivo-page {
   min-height: 100vh;
-  width: 100%;
-  position: relative;
-  overflow: hidden;
-
-  background:
-    radial-gradient(
-      circle at 50% 50%,
-      rgba(0, 150, 255, 0.06),
-      transparent 30%
-    ),
-    radial-gradient(
-      circle at 80% 70%,
-      rgba(220, 0, 180, 0.05),
-      transparent 30%
-    ),
-    linear-gradient(
-      135deg,
-      #020812 0%,
-      #030714 50%,
-      #08020f 100%
-    );
+  padding: 12px;
+  background: #f4f3d9;
 }
 
-/* =====================================
-   ZIVO LOGO
-===================================== */
+.browser-shell {
+  min-height: calc(100vh - 24px);
+  overflow: hidden;
+  border: 2px solid #292c10;
+  border-radius: 26px;
+  background: #f8f7e5;
+  box-shadow: 0 8px 30px rgba(45, 47, 16, 0.08);
+}
 
-.zivo-logo {
-  position: absolute;
-  top: 48px;
-  left: 50%;
-  transform: translateX(-50%);
+.browser-bar {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  border-bottom: 2px solid #292c10;
+}
 
-  font-family: "Courier New", Courier, monospace;
+.traffic-lights {
+  display: flex;
+  gap: 10px;
+}
+
+.traffic {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  display: block;
+}
+
+.red {
+  background: #ef4144;
+}
+
+.yellow {
+  background: #f2a62c;
+}
+
+.green {
+  background: #449c4c;
+}
+
+.topbar {
+  min-height: 92px;
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  padding: 0 34px 0 54px;
+  border-bottom: 2px solid #292c10;
+  position: relative;
+}
+
+.brand {
+  font-family: "Patrick Hand", cursive;
   font-size: 48px;
   font-weight: 700;
-  letter-spacing: 7px;
-
-  color: #f4f4f4;
-  text-transform: lowercase;
-
-  text-shadow:
-    0 0 8px rgba(255, 255, 255, 0.2);
-
-  z-index: 20;
+  letter-spacing: 1px;
 }
 
-.cursor {
-  margin-left: 4px;
-  color: #ffffff;
-  animation: cursorBlink 0.9s infinite;
-}
-
-@keyframes cursorBlink {
-  0%, 45% { opacity: 1; }
-  46%, 100% { opacity: 0; }
-}
-
-/* =====================================
-   MAIN
-===================================== */
-
-.zivo-main {
-  width: 100%;
-  min-height: 100vh;
-
+.navigation {
+  margin-left: auto;
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  gap: 54px;
+  padding-right: 170px;
+}
 
+.navigation a {
+  color: #292c10;
+  text-decoration: none;
+  text-transform: uppercase;
+  font-size: 15px;
+  letter-spacing: 4px;
+}
+
+.navigation a:hover {
+  text-decoration: underline;
+}
+
+.top-note {
+  position: absolute;
+  right: 20px;
+  top: -23px;
+  width: 160px;
+  min-height: 100px;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  padding: 18px;
+  border-radius: 50%;
+  background: #c7c895;
+  font-family: "Patrick Hand", cursive;
+  font-size: 17px;
+  line-height: 1.2;
+  letter-spacing: 2px;
+  transform: rotate(-9deg);
+}
+
+.main-layout {
+  display: grid;
+  grid-template-columns: minmax(380px, 0.92fr) minmax(520px, 1.08fr);
+  min-height: calc(100vh - 158px);
+}
+
+.intro-panel {
+  min-height: 780px;
   position: relative;
-  padding-top: 135px;
+  padding: 55px 48px 48px;
+  overflow: hidden;
+  border-right: 2px solid #292c10;
 }
 
-/* =====================================
-   TITLE
-===================================== */
-
-.hero-title {
-  font-size: clamp(30px, 3vw, 45px);
-  font-weight: 400;
-  letter-spacing: -1px;
-  color: #f4f7ff;
-  z-index: 5;
+.intro-copy h1 {
+  margin: 0;
+  font-family: "Playfair Display", serif;
+  font-size: clamp(110px, 12vw, 210px);
+  line-height: 0.78;
+  letter-spacing: -14px;
+  font-weight: 800;
+  color: #292c10;
 }
 
-.hero-title span {
-  background:
-    linear-gradient(
-      90deg,
-      #63dfff,
-      #9c8cff,
-      #ff63d5
-    );
-
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+.intro-copy p {
+  margin: 40px 0 0 8px;
+  font-family: "Patrick Hand", cursive;
+  font-size: clamp(30px, 3vw, 52px);
+  line-height: 1.05;
+  letter-spacing: 2px;
+  transform: rotate(-4deg);
 }
 
-/* =====================================
-   VOICE AREA
-===================================== */
-
-.voice-area {
-  width: 100%;
-  height: 470px;
-
-  position: relative;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  margin-top: 5px;
+.curved-arrow {
+  width: 310px;
+  margin: 8px 0 0 15px;
+  font-family: "Patrick Hand", cursive;
+  font-size: 92px;
+  line-height: 0.5;
+  transform: rotate(-12deg);
 }
 
-/* =====================================
-   MICROPHONE
-===================================== */
-
-.mic-button {
+.flower-note {
+  position: absolute;
+  top: 230px;
+  right: 25px;
   width: 165px;
   height: 165px;
-
-  border-radius: 50%;
-
-  position: relative;
-  z-index: 10;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  cursor: pointer;
-  color: #62eeff;
-
-  background:
-    radial-gradient(
-      circle at 45% 35%,
-      #14243c,
-      #030713 65%
-    );
-
-  border: 2px solid #00eaff;
-
-  box-shadow:
-    0 0 15px rgba(0, 234, 255, 0.25),
-    inset 0 0 25px rgba(0, 120, 255, 0.08);
-
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  border-radius: 48% 52% 60% 40%;
+  background: #f4c9bd;
+  font-family: "Patrick Hand", cursive;
+  font-size: 24px;
+  line-height: 1.05;
+  transform: rotate(9deg);
 }
 
-.mic-button:hover {
-  transform: scale(1.06);
-
-  box-shadow:
-    0 0 25px rgba(0, 234, 255, 0.45),
-    0 0 70px rgba(0, 180, 255, 0.15);
-}
-
-.mic-button:disabled {
-  cursor: default;
-}
-
-/* =====================================
-   ACTIVE MICROPHONE
-===================================== */
-
-.mic-active {
-  border-color: #ff45d4;
-
-  box-shadow:
-    0 0 25px rgba(0, 234, 255, 0.7),
-    0 0 50px rgba(0, 234, 255, 0.35),
-    0 0 80px rgba(255, 0, 200, 0.25);
-
-  animation:
-    micPulse 1.5s infinite ease-in-out;
-}
-
-@keyframes micPulse {
-  0% {
-    transform: scale(1);
-  }
-
-  50% {
-    transform: scale(1.06);
-  }
-
-  100% {
-    transform: scale(1);
-  }
-}
-
-/* =====================================
-   WAVEFORM
-===================================== */
-
-.wave {
+.mic-section {
   position: absolute;
-
-  width: 650px;
-  height: 150px;
-
-  top: 50%;
-  transform: translateY(-50%);
-
-  border-radius: 50%;
-  pointer-events: none;
+  left: 50%;
+  top: 54%;
+  transform: translate(-50%, -50%);
+  text-align: center;
   z-index: 2;
 }
 
-.wave-left {
-  right: 50%;
-
-  border-top:
-    2px solid rgba(0, 235, 255, 0.9);
-
-  border-bottom:
-    2px solid rgba(0, 180, 255, 0.35);
-
-  filter:
-    drop-shadow(0 0 7px #00eaff);
-
-  transform-origin: right center;
-
-  animation:
-    waveLeft 1.3s infinite ease-in-out;
+.mic-button {
+  border: 0;
+  background: transparent;
+  padding: 0;
 }
 
-.wave-right {
-  left: 50%;
-
-  border-top:
-    2px solid rgba(255, 0, 205, 0.9);
-
-  border-bottom:
-    2px solid rgba(255, 60, 210, 0.35);
-
-  filter:
-    drop-shadow(0 0 8px #ff00d0);
-
-  transform-origin: left center;
-
-  animation:
-    waveRight 1.3s infinite ease-in-out;
-}
-
-@keyframes waveLeft {
-  0% {
-    transform: translateY(-50%) scaleY(0.3) rotate(0deg);
-    opacity: 0.35;
-  }
-
-  25% {
-    transform: translateY(-50%) scaleY(1.2) rotate(-4deg);
-    opacity: 1;
-  }
-
-  50% {
-    transform: translateY(-50%) scaleY(0.55) rotate(3deg);
-  }
-
-  75% {
-    transform: translateY(-50%) scaleY(1.05) rotate(-2deg);
-  }
-
-  100% {
-    transform: translateY(-50%) scaleY(0.3) rotate(0deg);
-    opacity: 0.35;
-  }
-}
-
-@keyframes waveRight {
-  0% {
-    transform: translateY(-50%) scaleY(0.3) rotate(0deg);
-    opacity: 0.35;
-  }
-
-  25% {
-    transform: translateY(-50%) scaleY(1.15) rotate(4deg);
-    opacity: 1;
-  }
-
-  50% {
-    transform: translateY(-50%) scaleY(0.5) rotate(-3deg);
-  }
-
-  75% {
-    transform: translateY(-50%) scaleY(1.1) rotate(2deg);
-  }
-
-  100% {
-    transform: translateY(-50%) scaleY(0.3) rotate(0deg);
-    opacity: 0.35;
-  }
-}
-
-/* =====================================
-   PARTICLES
-===================================== */
-
-.voice-particles {
-  position: absolute;
-
-  width: 380px;
-  height: 380px;
-
+.mic-ring {
+  width: 260px;
+  height: 260px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #a5a66c;
   border-radius: 50%;
-
-  background:
-    radial-gradient(
-      circle at 20% 30%,
-      #00eaff 1px,
-      transparent 2px
-    ),
-    radial-gradient(
-      circle at 70% 20%,
-      #ff20d0 1px,
-      transparent 2px
-    ),
-    radial-gradient(
-      circle at 80% 70%,
-      #a050ff 1px,
-      transparent 2px
-    ),
-    radial-gradient(
-      circle at 30% 80%,
-      #00eaff 1px,
-      transparent 2px
-    );
-
-  background-size:
-    35px 35px,
-    45px 45px,
-    30px 30px,
-    50px 50px;
-
-  opacity: 0.55;
-  filter: blur(0.2px);
-
-  animation:
-    particleRotate 5s linear infinite;
-
-  pointer-events: none;
-}
-
-@keyframes particleRotate {
-  from {
-    transform: rotate(0deg) scale(0.85);
-  }
-
-  to {
-    transform: rotate(360deg) scale(1.08);
-  }
-}
-
-/* =====================================
-   STATUS
-===================================== */
-
-.voice-status {
-  position: absolute;
-
-  bottom: 105px;
-
-  font-size: 18px;
-  color: #8996ad;
-
-  letter-spacing: 0.3px;
-
-  z-index: 15;
-
-  transition:
-    color 0.25s ease,
-    text-shadow 0.25s ease;
-}
-
-.voice-area.is-listening ~ .voice-status {
-  color: #62eaff;
-}
-
-.voice-status.active {
-  color: #ff63d5;
-}
-
-/* =====================================
-   RESPONSE
-===================================== */
-
-.zivo-response {
-  position: absolute;
-
-  bottom: 55px;
-
-  width: min(90%, 850px);
-  max-width: 850px;
-
-  text-align: left;
-
-  padding: 8px 18px;
-
-  font-size: 16px;
-  color: #e8ecf5;
-
-  z-index: 20;
-
-  animation:
-    responseAppear 0.3s ease;
-}
-
-.response-text {
-  text-align: center;
-  line-height: 1.6;
-}
-
-@keyframes responseAppear {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* =====================================
-   CODE FILE CARD
-===================================== */
-
-.code-file-card {
-  width: 100%;
-  max-width: 850px;
-  padding: 18px;
-
-  border-radius: 16px;
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(18, 25, 42, 0.96),
-      rgba(8, 12, 24, 0.98)
-    );
-
-  border:
-    1px solid rgba(98, 234, 255, 0.18);
-
+  background: #f8f7e5;
   box-shadow:
-    0 10px 40px rgba(0, 0, 0, 0.35),
-    inset 0 0 30px rgba(0, 150, 255, 0.03);
-
-  text-align: left;
+    inset 0 0 0 24px #c8ca93,
+    0 0 0 12px rgba(200, 202, 147, 0.18);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.code-file-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 15px;
-
-  padding-bottom: 14px;
-
-  border-bottom:
-    1px solid rgba(255, 255, 255, 0.08);
+.mic-button:hover .mic-ring {
+  transform: scale(1.03);
 }
 
-.code-file-info {
-  min-width: 0;
+.mic-button.is-listening .mic-ring {
+  animation: pulse 1.4s infinite;
+  box-shadow:
+    inset 0 0 0 24px #b8bc7b,
+    0 0 0 18px rgba(200, 202, 147, 0.25);
 }
 
-.code-file-language {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  color: #62eeff;
+.mic-icon {
+  width: 84px;
+  height: 84px;
+  color: #292c10;
 }
 
-.code-file-name {
-  margin-top: 5px;
-
-  font-family:
-    "Fira Code",
-    "Cascadia Code",
-    Consolas,
-    monospace;
-
-  font-size: 15px;
-  color: #f2f5ff;
-
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.mic-caption {
+  margin: 20px 0 0;
+  font-family: "Patrick Hand", cursive;
+  font-size: 25px;
+  line-height: 1.05;
+  letter-spacing: 1px;
 }
 
-.code-status {
-  flex-shrink: 0;
-
-  font-size: 12px;
-  padding: 5px 10px;
-  border-radius: 20px;
-}
-
-.code-success {
-  color: #62eeff;
-
-  background:
-    rgba(0, 234, 255, 0.08);
-
-  border:
-    1px solid rgba(0, 234, 255, 0.18);
-}
-
-.code-error {
-  color: #ff6b9d;
-
-  background:
-    rgba(255, 50, 120, 0.08);
-
-  border:
-    1px solid rgba(255, 50, 120, 0.18);
-}
-
-.code-file-output {
-  margin-top: 14px;
-
-  padding: 11px 13px;
-
-  border-radius: 9px;
-
-  background:
-    rgba(255, 255, 255, 0.035);
-
-  color: #aeb9cc;
-
-  font-size: 13px;
-
-  font-family:
-    "Fira Code",
-    "Cascadia Code",
-    Consolas,
-    monospace;
-
-  overflow-x: auto;
-  white-space: pre-wrap;
-}
-
-.code-file-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 16px;
-}
-
-.code-open-button,
-.code-download-button {
-  padding: 8px 14px;
-
-  border-radius: 8px;
-  cursor: pointer;
-
-  font-size: 12px;
-  font-weight: 600;
-
-  transition:
-    transform 0.2s ease,
-    background 0.2s ease;
-}
-
-.code-open-button {
-  color: #62eeff;
-
-  background:
-    rgba(0, 234, 255, 0.08);
-
-  border:
-    1px solid rgba(0, 234, 255, 0.25);
-}
-
-.code-download-button {
-  color: #ffffff;
-
-  background:
-    linear-gradient(
-      90deg,
-      #187cff,
-      #8b5cf6
-    );
-
-  border: none;
-}
-
-.code-open-button:hover,
-.code-download-button:hover {
-  transform: translateY(-1px);
-}
-
-.code-open-button:hover {
-  background:
-    rgba(0, 234, 255, 0.14);
-}
-
-.code-download-button:hover {
-  opacity: 0.92;
-}
-
-/* =====================================
-   CODE MODAL
-===================================== */
-
-.code-modal-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 30px;
-
-  background:
-    rgba(0, 0, 0, 0.72);
-
-  backdrop-filter: blur(8px);
-}
-
-.code-modal {
-  width: min(900px, 95vw);
-  max-height: 85vh;
-
+.bottom-blob {
+  position: absolute;
+  left: -18px;
+  bottom: -20px;
+  width: 390px;
+  height: 245px;
+  padding: 130px 0 0 45px;
+  border-radius: 0 80% 0 0;
+  background: #343711;
+  color: #f8f7e5;
   display: flex;
   flex-direction: column;
-
-  overflow: hidden;
-
-  border-radius: 16px;
-
-  background: #0d1117;
-
-  border:
-    1px solid rgba(255, 255, 255, 0.12);
-
-  box-shadow:
-    0 25px 80px rgba(0, 0, 0, 0.55);
-}
-
-.code-modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  padding: 13px 16px;
-
-  background: #161b22;
-
-  border-bottom:
-    1px solid rgba(255, 255, 255, 0.08);
-}
-
-.code-modal-title {
-  font-family:
-    "Fira Code",
-    "Cascadia Code",
-    Consolas,
-    monospace;
-
-  font-size: 13px;
-  color: #e6edf3;
-
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.code-close-button {
-  width: 30px;
-  height: 30px;
-
-  border: none;
-  border-radius: 7px;
-
-  background:
-    rgba(255, 255, 255, 0.06);
-
-  color: #ffffff;
-
-  font-size: 20px;
-  cursor: pointer;
-
-  flex-shrink: 0;
-}
-
-.code-close-button:hover {
-  background:
-    rgba(255, 255, 255, 0.12);
-}
-
-.code-modal-content {
-  margin: 0;
-  padding: 22px;
-
-  overflow: auto;
-  flex: 1;
-
-  color: #e6edf3;
-
-  font-family:
-    "Fira Code",
-    "Cascadia Code",
-    Consolas,
-    monospace;
-
-  font-size: 14px;
-  line-height: 1.7;
-
-  text-align: left;
-  white-space: pre;
-}
-
-.code-modal-content code {
-  font-family: inherit;
-}
-
-.code-modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-
-  padding: 12px 16px;
-
-  background: #161b22;
-
-  border-top:
-    1px solid rgba(255, 255, 255, 0.08);
-}
-
-.code-modal-copy,
-.code-modal-download {
-  padding: 8px 14px;
-
-  border-radius: 8px;
-  cursor: pointer;
-
+  gap: 3px;
   font-size: 12px;
-  font-weight: 600;
-
-  transition:
-    transform 0.2s ease,
-    opacity 0.2s ease;
-}
-
-.code-modal-copy {
-  color: #62eeff;
-
-  background:
-    rgba(0, 234, 255, 0.08);
-
-  border:
-    1px solid rgba(0, 234, 255, 0.2);
-}
-
-.code-modal-download {
-  color: white;
-
-  background:
-    linear-gradient(
-      90deg,
-      #187cff,
-      #8b5cf6
-    );
-
-  border: none;
-}
-
-.code-modal-copy:hover,
-.code-modal-download:hover {
-  transform: translateY(-1px);
-  opacity: 0.92;
-}
-
-/* =====================================
-   FOOTER
-===================================== */
-
-footer {
-  position: absolute;
-
-  bottom: 22px;
-  left: 50%;
-
-  transform: translateX(-50%);
-
-  color: #4f5b72;
-
-  font-size: 13px;
+  text-transform: uppercase;
   letter-spacing: 2px;
 }
 
-/* =====================================
-   RESPONSIVE
-===================================== */
+.bottom-blob i {
+  display: block;
+  width: 105px;
+  border-top: 1px solid #f8f7e5;
+  margin-top: 10px;
+}
 
-@media (max-width: 768px) {
-  .zivo-logo {
-    top: 30px;
-    font-size: 38px;
+.workspace-panel {
+  padding: 38px 24px 26px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.workspace-card {
+  flex: 1;
+  min-height: 520px;
+  border: 2px solid #292c10;
+  border-radius: 22px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.workspace-header {
+  min-height: 66px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  border-bottom: 2px solid #292c10;
+  font-family: "Patrick Hand", cursive;
+  font-size: 25px;
+}
+
+.workspace-header strong {
+  font-size: 34px;
+  letter-spacing: 1px;
+}
+
+.workspace-header strong span {
+  font-size: 27px;
+}
+
+.workspace-content {
+  position: relative;
+  min-height: 450px;
+  padding: 78px 64px 120px;
+  overflow: hidden;
+}
+
+.spark {
+  position: absolute;
+  top: 62px;
+  left: 52px;
+  font-family: "Patrick Hand", cursive;
+  font-size: 70px;
+  transform: rotate(-30deg);
+}
+
+.placeholder,
+.response-copy {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.workspace-content ul {
+  margin: 42px 0 0 12px;
+  padding-left: 22px;
+  font-size: 18px;
+  line-height: 2;
+}
+
+.workspace-sticker {
+  position: absolute;
+  right: -15px;
+  bottom: -28px;
+  width: 280px;
+  min-height: 150px;
+  padding: 42px 28px 20px;
+  border-radius: 50% 30% 0 50%;
+  background: #bfc48a;
+  text-align: center;
+  font-family: "Patrick Hand", cursive;
+  font-size: 23px;
+  line-height: 1.1;
+  transform: rotate(-5deg);
+}
+
+.command-form {
+  height: 96px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 30px;
+  padding: 0 20px 0 28px;
+  border: 2px solid #292c10;
+  border-radius: 52px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.attach-button,
+.send-button {
+  border: 0;
+  background: transparent;
+  color: #292c10;
+}
+
+.attach-button {
+  font-size: 38px;
+  transform: rotate(-45deg);
+}
+
+.command-form input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #292c10;
+  font-size: 18px;
+  padding: 0 8px;
+}
+
+.command-form input::placeholder {
+  color: #777866;
+}
+
+.send-button {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #292929;
+  color: #fff;
+  font-size: 38px;
+  line-height: 1;
+  transition: transform 0.2s ease;
+}
+
+.send-button:not(:disabled):hover {
+  transform: translateY(-3px);
+}
+
+.footer-note {
+  align-self: flex-end;
+  margin: 20px 8px 0;
+  font-family: "Patrick Hand", cursive;
+  font-size: 23px;
+  transform: rotate(-3deg);
+}
+
+.footer-note span {
+  display: block;
+  width: 280px;
+  margin-top: 3px;
+  border-top: 2px solid #292c10;
+  transform: rotate(2deg);
+}
+
+.code-result {
+  position: relative;
+  z-index: 2;
+}
+
+.code-result h3 {
+  margin: 10px 0 20px;
+  font-family: "Patrick Hand", cursive;
+  font-size: 30px;
+}
+
+.result-label {
+  display: inline-block;
+  padding: 5px 10px;
+  border: 1px solid #292c10;
+  border-radius: 20px;
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+
+.code-result p {
+  font-size: 16px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.result-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.result-actions button {
+  border: 1px solid #292c10;
+  border-radius: 24px;
+  background: #c8ca93;
+  color: #292c10;
+  padding: 10px 16px;
+}
+
+.result-actions button:hover {
+  background: #292c10;
+  color: #f8f7e5;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
   }
 
-  .zivo-main {
-    padding-top: 115px;
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+@media (max-width: 1100px) {
+  .main-layout {
+    grid-template-columns: 1fr;
   }
 
-  .hero-title {
-    font-size: 28px;
-    text-align: center;
+  .intro-panel {
+    min-height: 700px;
+    border-right: 0;
+    border-bottom: 2px solid #292c10;
+  }
+
+  .workspace-panel {
+    min-height: 650px;
+  }
+
+  .navigation {
+    gap: 24px;
+    padding-right: 0;
+  }
+
+  .top-note {
+    display: none;
+  }
+}
+
+@media (max-width: 650px) {
+  .zivo-page {
+    padding: 6px;
+  }
+
+  .browser-shell {
+    border-radius: 18px;
+  }
+
+  .topbar {
+    min-height: 72px;
     padding: 0 20px;
   }
 
-  .voice-area {
-    height: 430px;
+  .brand {
+    font-size: 38px;
   }
 
-  .mic-button {
-    width: 130px;
-    height: 130px;
+  .navigation {
+    display: none;
+  }
+
+  .intro-panel {
+    padding: 44px 24px;
+    min-height: 650px;
+  }
+
+  .intro-copy h1 {
+    font-size: 105px;
+    letter-spacing: -8px;
+  }
+
+  .intro-copy p {
+    font-size: 31px;
+  }
+
+  .flower-note {
+    top: 190px;
+    right: 12px;
+    width: 120px;
+    height: 120px;
+    font-size: 19px;
+  }
+
+  .mic-ring {
+    width: 210px;
+    height: 210px;
+    box-shadow:
+      inset 0 0 0 20px #c8ca93,
+      0 0 0 10px rgba(200, 202, 147, 0.18);
   }
 
   .mic-icon {
-    width: 50px;
-    height: 50px;
+    width: 68px;
+    height: 68px;
   }
 
-  .wave {
-    width: 390px;
+  .mic-caption {
+    font-size: 22px;
   }
 
-  .voice-status {
-    bottom: 80px;
-  }
-
-  .zivo-response {
-    width: 94%;
-    max-width: 94%;
-    bottom: 48px;
-    padding: 6px 8px;
-  }
-
-  .code-file-card {
-    max-width: 100%;
-    padding: 14px;
-    border-radius: 12px;
-  }
-
-  .code-file-header {
-    align-items: flex-start;
-  }
-
-  .code-file-name {
-    max-width: 200px;
-  }
-
-  .code-file-actions {
-    justify-content: stretch;
-  }
-
-  .code-open-button,
-  .code-download-button {
-    flex: 1;
-  }
-
-  .code-modal-overlay {
-    padding: 12px;
-  }
-
-  .code-modal {
-    width: 100%;
-    max-height: 90vh;
-  }
-
-  .code-modal-content {
-    padding: 15px;
-    font-size: 12px;
-  }
-
-  .code-modal-footer {
-    padding: 10px;
-  }
-
-  footer {
+  .bottom-blob {
+    width: 280px;
+    height: 180px;
+    padding: 92px 0 0 28px;
     font-size: 10px;
-    white-space: nowrap;
+  }
+
+  .workspace-panel {
+    padding: 20px 12px;
+  }
+
+  .workspace-header {
+    padding: 0 18px;
+    font-size: 20px;
+  }
+
+  .workspace-header strong {
+    font-size: 27px;
+  }
+
+  .workspace-content {
+    padding: 64px 24px 130px;
+  }
+
+  .placeholder,
+  .response-copy {
+    font-size: 15px;
+  }
+
+  .workspace-content ul {
+    font-size: 15px;
+  }
+
+  .workspace-sticker {
+    width: 220px;
+    font-size: 18px;
+  }
+
+  .command-form {
+    height: 78px;
+    gap: 8px;
+    padding-left: 18px;
+  }
+
+  .command-form input {
+    font-size: 14px;
+  }
+
+  .send-button {
+    width: 48px;
+    height: 48px;
+    font-size: 30px;
+  }
+
+  .footer-note {
+    font-size: 19px;
   }
 }
