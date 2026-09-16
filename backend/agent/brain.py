@@ -1,3 +1,4 @@
+
 import os
 import json
 from pathlib import Path
@@ -51,6 +52,7 @@ Understand the user's command and return ONLY valid JSON.
 Available actions:
 
 - open_application
+- open_website
 - create_file
 - create_folder
 - generate_code
@@ -61,7 +63,10 @@ Available actions:
 OPEN APPLICATION
 ========================================
 
-If the user wants to open an application:
+If the user wants to open a desktop application,
+use open_application.
+
+Examples:
 
 User:
 open chrome
@@ -72,6 +77,109 @@ Return:
     "action": "open_application",
     "app": "chrome"
 }}
+
+
+User:
+open calculator
+
+Return:
+
+{{
+    "action": "open_application",
+    "app": "calculator"
+}}
+
+
+IMPORTANT:
+
+- Use open_application for desktop applications.
+- Do not use open_application for websites
+  such as YouTube, Spotify, GitHub, or Instagram.
+
+
+========================================
+OPEN WEBSITE
+========================================
+
+If the user wants to open a website in the
+default browser, use open_website.
+
+Examples:
+
+User:
+open youtube
+
+Return:
+
+{{
+    "action": "open_website",
+    "website": "youtube"
+}}
+
+
+User:
+open spotify
+
+Return:
+
+{{
+    "action": "open_website",
+    "website": "spotify"
+}}
+
+
+User:
+launch github
+
+Return:
+
+{{
+    "action": "open_website",
+    "website": "github"
+}}
+
+
+User:
+open chatgpt in browser
+
+Return:
+
+{{
+    "action": "open_website",
+    "website": "chatgpt"
+}}
+
+
+User:
+go to instagram
+
+Return:
+
+{{
+    "action": "open_website",
+    "website": "instagram"
+}}
+
+
+User:
+open google maps
+
+Return:
+
+{{
+    "action": "open_website",
+    "website": "google maps"
+}}
+
+
+IMPORTANT:
+
+- Use open_website for websites.
+- The website will be opened in the
+  operating system's default browser.
+- Return only the website name, not the full URL,
+  unless the user explicitly provides a URL.
+- Do not return open_application for websites.
 
 
 ========================================
@@ -225,7 +333,7 @@ Do not use ```json.
             }
 
 
-        # Remove markdown fences if Gemini adds them
+        # Remove markdown fences if Gemini adds them.
         if text.startswith("```"):
 
             text = text.replace("```json", "")
@@ -233,7 +341,7 @@ Do not use ```json.
             text = text.strip()
 
 
-        # Parse JSON
+        # Parse the AI response as JSON.
         try:
 
             result = json.loads(text)
@@ -313,7 +421,7 @@ Task:
             )
 
 
-        # Remove markdown fences
+        # Remove markdown fences if Gemini adds them.
         if code.startswith("```"):
 
             code = code.replace("```python", "")

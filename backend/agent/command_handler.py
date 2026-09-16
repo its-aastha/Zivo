@@ -1,8 +1,11 @@
+
 from agent.brain import understand, generate_code
 from agent.local_router import local_route
 
 from tools.app_tools import open_application
 from tools.file_tools import create_file, create_folder
+from tools.browser_tools import open_website
+
 from tools.code_tools import (
     run_python_code,
     create_code_file
@@ -12,6 +15,8 @@ from tools.code_tools import (
 # ==========================================
 # FALLBACK APPLICATION EXTRACTOR
 # ==========================================
+# Used when the AI does not provide an
+# application name in its response.
 
 def extract_application(command: str):
 
@@ -40,6 +45,40 @@ def extract_application(command: str):
 
 
 # ==========================================
+# FALLBACK WEBSITE EXTRACTOR
+# ==========================================
+# Used when the AI understands that the user
+# wants to open a website but does not provide
+# the website name.
+
+def extract_website(command: str):
+
+    command = command.strip().lower()
+
+    prefixes = [
+        "open ",
+        "launch ",
+        "start ",
+        "go to "
+    ]
+
+    for prefix in prefixes:
+
+        if command.startswith(prefix):
+
+            website = command[len(prefix):].strip()
+
+            website = website.replace("please ", "")
+            website = website.replace("the ", "")
+            website = website.replace(" in browser", "")
+            website = website.replace(" in the browser", "")
+
+            return website.strip()
+
+    return None
+
+
+# ==========================================
 # MAIN COMMAND HANDLER
 # ==========================================
 
@@ -54,6 +93,8 @@ def handle_command(command: str):
     # ==========================================
     # STEP 1: LOCAL ROUTER
     # ==========================================
+    # Simple commands are handled locally first.
+    # This avoids unnecessary Gemini API calls.
 
     local_result = local_route(command)
 
@@ -71,6 +112,8 @@ def handle_command(command: str):
         # ==========================================
         # STEP 2: GEMINI
         # ==========================================
+        # If the local router cannot understand
+        # the command, send it to the AI.
 
         try:
 
@@ -143,6 +186,81 @@ def handle_command(command: str):
             f"Zivo encountered an AI error: "
             f"{message}"
         )
+
+
+    # ==========================================
+    # OPEN WEBSITE
+    # ==========================================
+    # This action opens websites such as
+    # YouTube, Spotify, GitHub, etc.
+    #
+    # The website is opened using Python's
+    # webbrowser module, which uses the
+    # operating system's default browser.
+
+    if action == "open_website":
+
+        website = result.get("website")
+
+        # --------------------------------------
+        # FALLBACK
+        # --------------------------------------
+        # If the AI did not provide the website,
+        # extract it directly from the command.
+
+        if not website:
+
+            print(
+                "AI did not provide website name."
+            )
+
+            website = extract_website(command)
+
+            print(
+                "FALLBACK WEBSITE:",
+                website
+            )
+
+        # --------------------------------------
+        # NO WEBSITE
+        # --------------------------------------
+
+        if not website:
+
+            return (
+                "I understood that you want "
+                "to open a website, "
+                "but I don't know which one."
+            )
+
+        print(
+            f"EXECUTING: "
+            f"open_website({website})"
+        )
+
+        try:
+
+            tool_result = open_website(
+                website
+            )
+
+            print(
+                "BROWSER TOOL RESULT:",
+                tool_result
+            )
+
+            return tool_result
+
+        except Exception as e:
+
+            print(
+                "OPEN WEBSITE ERROR:",
+                e
+            )
+
+            return (
+                f"Could not open {website}: {e}"
+            )
 
 
     # ==========================================
@@ -352,8 +470,11 @@ def handle_command(command: str):
 
     if action == "open_application":
 
-        app = result.get("app")
+        # The parser uses "app", and the AI may
+        # also return "app". This keeps both
+        # local and AI commands compatible.
 
+        app = result.get("app")
 
         # --------------------------------------
         # FALLBACK
@@ -362,7 +483,7 @@ def handle_command(command: str):
         if not app:
 
             print(
-                "Gemini did not provide app name."
+                "AI did not provide app name."
             )
 
             app = extract_application(
