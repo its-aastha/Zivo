@@ -1,5 +1,5 @@
 
-from agent.brain import understand, generate_code
+from agent.brain import understand, generate_code, answer_web_search
 from agent.local_router import local_route
 
 from tools.app_tools import open_application
@@ -186,6 +186,44 @@ def handle_command(command: str):
             f"Zivo encountered an AI error: "
             f"{message}"
         )
+
+
+
+    # ==========================================
+    # WEB SEARCH
+    # ==========================================
+
+    if action == "web_search":
+
+        query = result.get("query") or command
+
+        print(
+            f"EXECUTING WEB SEARCH: {query}"
+        )
+
+        try:
+
+            tool_result = answer_web_search(
+                query
+            )
+
+            print(
+                "WEB SEARCH RESULT:",
+                tool_result
+            )
+
+            return tool_result
+
+        except Exception as e:
+
+            print(
+                "WEB SEARCH ERROR:",
+                e
+            )
+
+            return (
+                f"I could not search the web right now: {e}"
+            )
 
 
     # ==========================================

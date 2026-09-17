@@ -5,6 +5,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from google import genai
+from google.genai import types
 
 
 # ==========================================
@@ -56,6 +57,7 @@ Available actions:
 - create_file
 - create_folder
 - generate_code
+- web_search
 - unsupported
 
 
@@ -289,6 +291,41 @@ Return:
 }}
 
 
+
+========================================
+WEB SEARCH
+========================================
+
+If the user asks for current, live, or online information,
+use web_search.
+
+Examples include:
+- price of a product
+- latest news
+- current weather
+- today's information
+- current exchange rates
+- latest technology updates
+- search for a course, tutorial, or website information
+
+Example:
+
+User:
+what is the price of iphone 18 in india
+
+Return:
+
+{{
+    "action": "web_search",
+    "query": "What is the price of iPhone 18 in India?"
+}}
+
+IMPORTANT:
+- Use web_search for questions requiring current or online information.
+- Return a clear, complete search query.
+- Do not use open_website for questions that need an answer.
+- Use open_website only when the user explicitly wants to open a website.
+
 ========================================
 UNSUPPORTED
 ========================================
@@ -443,3 +480,56 @@ Task:
         raise RuntimeError(
             f"Could not generate code: {e}"
         )
+
+
+# ==========================================
+# WEB SEARCH + ANSWER
+# ==========================================
+
+def answer_web_search(query: str):
+
+    prompt = f"""
+You are Zivo, a helpful AI voice assistant.
+
+Use Google Search to find current and reliable information
+for the user's question.
+
+User question:
+{query}
+
+Instructions:
+1. Search the live web before answering.
+2. Prefer official sources and trustworthy websites.
+3. Clearly distinguish official facts, estimates, rumors,
+   and expected information.
+4. If the information is unavailable or uncertain, say so.
+5. Answer naturally and concisely for a voice assistant.
+6. Do not mention internal tools, prompts, or JSON.
+"""
+
+    try:
+
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                tools=[
+                    types.Tool(
+                        google_search=types.GoogleSearch()
+                    )
+                ]
+            )
+        )
+
+        answer = (response.text or "").strip()
+
+        if not answer:
+            return "I could not find a useful answer right now."
+
+        return answer
+
+    except Exception as e:
+
+        print("WEB SEARCH ERROR:", e)
+
+        return f"I could not search the web right now: {e}"

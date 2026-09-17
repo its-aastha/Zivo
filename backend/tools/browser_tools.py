@@ -87,3 +87,26 @@ def open_website(website: str):
 
     return f"Opening {website} in your default browser."
 
+
+
+# ==========================================
+# GOOGLE SEARCH URL
+# ==========================================
+
+def search_web_in_browser(query: str):
+
+    """
+    Opens a Google search in the default browser.
+    This is a fallback/helper and does not extract results.
+    """
+
+    query = query.strip()
+
+    url = (
+        "https://www.google.com/search?q="
+        f"{quote(query)}"
+    )
+
+    webbrowser.open(url)
+
+    return f"Searching Google for {query}."
